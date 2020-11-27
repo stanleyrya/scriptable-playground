@@ -7,7 +7,7 @@ const getLocationDescription = async (lat, long) => {
 reverse geocode location: ${err}`));
 };
 
-// Notes
+// Initial impressions of the data
 // * In most of the below responses, "name" is the most useful if it exists.
 // * One counter example is Seattle where "name" is a random street ("1333 5th Ave").
 // * "name" includes both water information ("Lake Washington", etc.) and areas of interest informati on ("Boston Common", etc.).
@@ -15,6 +15,14 @@ reverse geocode location: ${err}`));
 // * While "subLocality" seems useful for some locations ("City of Westminster", etc.) it seems not useful in others ("CBD" in Seattle, etc.).
 // * "locality" always seems useful if it exists.
 // * "administrativeArea" could be used in conjunction with "locality" like this: "Seattle, WA". It doesn't seem helpful for Oslo though ("Oslo, Oslo"). A quick google search shows this is correct but still not that useful.
+// * It seems like "administrativeArea" is to "postalAddress"->"state" as "locality" is to "postalAddress"->"city". At first I thought using "postalAddress" would be cleaner to use but it's values are set to an empty string instead of null if there is no data. The lazy person in me wants to just use the variables that support null lol.
+
+// Thinking it through
+// * Realistically I think it's only useful to show two lines of information.
+// * While it's convienent to use "name" I think showing a specific street address isn't useful when the coordinates aren't that accurate. For that reason I suggest using "inlandWater", "ocean", and "areasOfInterest" instead if they exist.
+// * I'm thinking we can return an array of two values: 1. Area of Interest and 2. General Area
+// * "Area of Interest" may be null if there isn't a body of water or area of interest to surface. It'll use "inlandWater", "ocean", and "areasOfInterest". It may show both if both exist (Ex: "Spot Pond - Middlesex Fells Reservation").
+// * "General Area" will show the town/city name and the administrative area using "locality" and "administrativeArea".
 
 // In Water  ------------
 
