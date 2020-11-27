@@ -1,8 +1,38 @@
 // Given coordinates, return a description of the current location in words (town name, etc.)
 const getLocationDescription = async (lat, long) => {
 	return Location.reverseGeocode(lat, long).then((res) => {
-        console.log(res)
-		return res[0]["locality"];
+        	console.log(res);
+		const response = res[0];
+
+		let areaOfInterest = "";
+		if (response.inlandWater) {
+			areaOfInterest += response.inlandWater
+		} else if (response.ocean) {
+			areaOfInterest += response.ocean;
+		}
+		if (areaOfInterest && response.areasOfInterest) {
+			areaOfInterest += ' - ';
+		}
+		if (response.areasOfInterest) {
+			// To keep it simple, just grab the first one.
+			areaOfInterest += response.areasOfInterest[0];
+		}
+
+		let generalArea = "";
+		if (response.locality) {
+			generalArea += response.locality;
+		}
+		if (generalArea && response.administrativeArea) {
+			generalArea += ', ';
+		}
+		if (response.administrativeArea) {
+			generalArea += response.administrativeArea;
+		}
+
+		return {
+			areaOfInterest: areaOfInterest,
+			generalArea: generalArea
+		};
 	}, err => console.log(`Could not 
 reverse geocode location: ${err}`));
 };
@@ -83,7 +113,7 @@ reverse geocode location: ${err}`));
 // 	"subLocality": null,
 // 	"name": "Spot Pond"
 // }]
-// await getLocationDescription(42.4582873, -71.1006188)
+// console.log(await getLocationDescription(42.4582873, -71.1006188))
 
 // Lake Washington
 // 
@@ -122,7 +152,7 @@ reverse geocode location: ${err}`));
 // 	"areasOfInterest": null,
 // 	"subAdministrativeArea": "King"
 // }]
-// await getLocationDescription(47.6025303, -122.2538685)
+// console.log(await getLocationDescription(47.6025303, -122.2538685))
 
 // Pacific Ocean
 // 
@@ -160,7 +190,7 @@ reverse geocode location: ${err}`));
 // 	},
 // 	"subAdministrativeArea": null
 // }]
-// await getLocationDescription(45.1851250, -130.9194954)
+// console.log(await getLocationDescription(45.1851250, -130.9194954))
 
 // On Land ------------
 
@@ -201,7 +231,7 @@ reverse geocode location: ${err}`));
 // 	"country": "United States",
 // 	"administrativeArea": "MA"
 // }]
-// await getLocationDescription(42.3549970, -71.0644556)
+// console.log(await getLocationDescription(42.3549970, -71.0644556))
 
 // London
 // 
@@ -241,7 +271,7 @@ reverse geocode location: ${err}`));
 // 	"subThoroughfare": null,
 // 	"subAdministrativeArea": "London"
 // }]
-// await getLocationDescription(51.5017166, -0.1414114)
+// console.log(await getLocationDescription(51.5017166, -0.1414114))
 
 // Seattle
 // 
@@ -279,7 +309,7 @@ reverse geocode location: ${err}`));
 // 	"subLocality": "CBD",
 // 	"isoCountryCode": "US"
 // }]
-// await getLocationDescription(47.6093372, -122.3343570)
+// console.log(await getLocationDescription(47.6093372, -122.3343570))
 
 // Oslo
 // 
@@ -319,4 +349,4 @@ reverse geocode location: ${err}`));
 // 	"postalCode": "0191",
 // 	"subLocality": "Sentrum"
 // }]
-// await getLocationDescription(59.9103521, 10.7532188)
+// console.log(await getLocationDescription(59.9103521, 10.7532188))
