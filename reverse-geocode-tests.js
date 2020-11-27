@@ -10,6 +10,12 @@ reverse geocode location: ${err}`));
 // In Water  ------------
 
 // Spot Pond
+// 
+// Order of value:
+// 1. "inlandWater": "Spot Pond" / "name": "Spot Pond"
+// 2. "areasOfInterest": ["Middlesex Fells Reservation"]
+// 3. "locality": "Medford"
+// 
 // [{
 // 	"thoroughfare": null,
 // 	"isoCountryCode": "US",
@@ -44,6 +50,11 @@ reverse geocode location: ${err}`));
 // await getLocationDescription(42.4582873, -71.1006188)
 
 // Lake Washington
+// 
+// Order of value:
+// 1. "inlandWater": "Lake Washington" / "name": "Lake Washington"
+// 2. "locality": "Bellevue"
+// 
 // [{
 // 	"name": "Lake Washington",
 // 	"country": "United States",
@@ -78,6 +89,10 @@ reverse geocode location: ${err}`));
 // await getLocationDescription(47.6025303, -122.2538685)
 
 // Pacific Ocean
+// 
+// Order of value:
+// 1. "ocean": "North Pacific Ocean" / "name": "North Pacific Ocean"
+// 
 // [{
 // 	"areasOfInterest": null,
 // 	"administrativeArea": null,
@@ -114,6 +129,11 @@ reverse geocode location: ${err}`));
 // On Land ------------
 
 // Boston
+// 
+// Order of value:
+// 1. "areasOfInterest": ["Boston Common"] / "name": "Boston Common" / "subLocality": "Boston Common"
+// 2. "locality": "Boston"
+// 
 // [{
 // 	"areasOfInterest": ["Boston Common"],
 // 	"subThoroughfare": "121",
@@ -148,6 +168,12 @@ reverse geocode location: ${err}`));
 // await getLocationDescription(42.3549970, -71.0644556)
 
 // London
+// 
+// Order of value:
+// 1. "areasOfInterest": ["Buckingham Palace"] / "name": "Buckingham Palace"
+// 2. "subLocality": "City of Westminster"
+// 3. "locality": "London"
+// 
 // [{
 // 	"timeZone": "Europe/London",
 // 	"ocean": null,
@@ -182,6 +208,10 @@ reverse geocode location: ${err}`));
 // await getLocationDescription(51.5017166, -0.1414114)
 
 // Seattle
+// 
+// Order of value:
+// 1. "locality": "Seattle"
+// 
 // [{
 // 	"postalAddress": {
 // 		"street": "1333 5th Ave",
@@ -216,6 +246,12 @@ reverse geocode location: ${err}`));
 // await getLocationDescription(47.6093372, -122.3343570)
 
 // Oslo
+// 
+// Order of value:
+// 1. "name": "Trelastgata"
+// 2. "subLocality": "Sentrum"
+// 3. "locality": "Oslo"
+// 
 // [{
 // 	"thoroughfare": "Trelastgata",
 // 	"areasOfInterest": null,
