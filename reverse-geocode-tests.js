@@ -7,6 +7,15 @@ const getLocationDescription = async (lat, long) => {
 reverse geocode location: ${err}`));
 };
 
+// Notes
+// * In most of the below responses, "name" is the most useful if it exists.
+// * One counter example is Seattle where "name" is a random street ("1333 5th Ave").
+// * "name" includes both water information ("Lake Washington", etc.) and areas of interest informati on ("Boston Common", etc.).
+// * If "name" has water information then "areasOfInterest" may have different information (Ex: "Spot Pond" has an "areasOfInterest" of "Middlesex Fells Reservation").
+// * While "subLocality" seems useful for some locations ("City of Westminster", etc.) it seems not useful in others ("CBD" in Seattle, etc.).
+// * "locality" always seems useful if it exists.
+// * "administrativeArea" could be used in conjunction with "locality" like this: "Seattle, WA". It doesn't seem helpful for Oslo though ("Oslo, Oslo"). A quick google search shows this is correct but still not that useful.
+
 // In Water  ------------
 
 // Spot Pond
