@@ -24,6 +24,25 @@ reverse geocode location: ${err}`));
 // * "Area of Interest" may be null if there isn't a body of water or area of interest to surface. It'll use "inlandWater", "ocean", and "areasOfInterest". It may show both if both exist (Ex: "Spot Pond - Middlesex Fells Reservation").
 // * "General Area" will show the town/city name and the administrative area using "locality" and "administrativeArea".
 
+// Action
+// * Return {"areaOfInterest": "", "generalArea": ""}
+// * "areaOfInterest" is made up of ["inlandWater" or "ocean" if exists] - ["areasOfInterest" if exists]
+//   * Ex 1: Spot Pond       -> "Spot Pond - Middlesex Fells Reservation"
+//   * Ex 2: Lake Washington -> "Lake Washington"
+//   * Ex 3: Pacific Ocean   -> "North Pacific Ocean"
+//   * Ex 4: Boston          -> "Boston Common"
+//   * Ex 5: London          -> "Buckingham Palace"
+//   * Ex 6: Seattle         -> null
+//   * Ex 7: Oslo            -> null
+// * "generalArea" is made up of ["locality" if exists], ["administrativeArea" if exists]
+//   * Ex 1: Spot Pond       -> "Medford, MA"
+//   * Ex 2: Lake Washington -> "Bellevue, WA"
+//   * Ex 3: Pacific Ocean   -> null
+//   * Ex 4: Boston          -> "Boston, MA"
+//   * Ex 5: London          -> "London, England"
+//   * Ex 6: Seattle         -> "Seattle, WA"
+//   * Ex 7: Oslo            -> "Oslo, Oslo"
+
 // In Water  ------------
 
 // Spot Pond
