@@ -30,8 +30,8 @@ const getLocationDescription = async (lat, long) => {
 		}
 
 		return {
-			areaOfInterest: areaOfInterest,
-			generalArea: generalArea
+			areaOfInterest: areaOfInterest ? areaOfInterest : null,
+			generalArea: generalArea ? generalArea : null
 		};
 	}, err => console.log(`Could not 
 reverse geocode location: ${err}`));
