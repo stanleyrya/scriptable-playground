@@ -1,7 +1,15 @@
 const params = {"apiKey": "testtest"};
 
+function getFileManager() {
+    try {
+        return FileManager.iCloud();
+    } catch(e) {
+        return FileManager.local();
+    }
+}
+
 function getCurrentDir() {
-    const fm = FileManager.local();
+    const fm = getFileManager();
     const thisScriptPath = module.filename;
     return thisScriptPath.replace(fm.fileName(thisScriptPath, true), '');
 }
@@ -11,7 +19,7 @@ function getCurrentDir() {
  * Returns null if it cannot be loaded.
  */
 function loadStoredParameters(name) {
-    const fm = FileManager.local();
+    const fm = getFileManager();
     const storageDir = getCurrentDir() + "storage";
     const parameterPath = storageDir + "/" + name + ".json";
 
@@ -29,6 +37,9 @@ function loadStoredParameters(name) {
         return null;
     }
 
+    // Doesn't fail with local filesystem
+    fm.downloadFileFromiCloud(parameterPath);
+
     const parameterJSON = JSON.parse(fm.readString(parameterPath));
     if (parameterJSON !== null) {
         return parameterJSON;
@@ -42,7 +53,7 @@ function loadStoredParameters(name) {
  * Attempts to write the file ./storage/name.json
  */
 function writeStoredParameters(name, params) {
-    const fm = FileManager.local();
+    const fm = getFileManager();
     const storageDir = getCurrentDir() + "storage";
     const parameterPath = storageDir + "/" + name + ".json";
 
