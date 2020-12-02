@@ -4,8 +4,16 @@ let performanceMetrics2 = {"getCurrentLocation":3200,"getNearbyWikiArticles":312
 appendPerformanceDataToFile("test", performanceMetrics);
 // appendPerformanceDataToFile("test", performanceMetrics2);
 
+function getFileManager() {
+    try {
+        return FileManager.iCloud();
+    } catch(e) {
+        return FileManager.local();
+    }
+}
+
 function getCurrentDir() {
-    const fm = FileManager.local();
+    const fm = getFileManager();
     const thisScriptPath = module.filename;
     return thisScriptPath.replace(fm.fileName(thisScriptPath, true), '');
 }
@@ -15,7 +23,7 @@ function getCurrentDir() {
  * Returns false if it cannot be written.
  */
 function appendPerformanceDataToFile(name, performanceMetrics) {
-    const fm = FileManager.local();
+    const fm = getFileManager();
     const storageDir = getCurrentDir() + "storage";
     const metricsPath = storageDir + "/" + name + '-performance-metrics.csv';
 
@@ -39,6 +47,10 @@ function appendPerformanceDataToFile(name, performanceMetrics) {
 
     if (fm.fileExists(metricsPath)) {
         console.log("File exists, reading headers. To keep things easy we're only going to write to these headers.");
+
+         // Doesn't fail with local filesystem
+        fm.downloadFileFromiCloud(metricsPath);
+
         fileData = fm.readString(metricsPath);
         const firstLine = getFirstLine(fileData);
         headers = firstLine.split(',');
