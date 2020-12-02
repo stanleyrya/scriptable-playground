@@ -1,5 +1,5 @@
-let performanceMetrics = {"getCurrentLocation":3200,"getNearbyWikiArticles":312,"getMapsPicByCurrentLocations":535}
-let performanceMetrics2 = {"getCurrentLocation":3200,"getNearbyWikiArticles":312}
+let performanceMetrics = { "getCurrentLocation": 3200, "getNearbyWikiArticles": 312, "getMapsPicByCurrentLocations": 535 }
+let performanceMetrics2 = { "getCurrentLocation": 3200, "getNearbyWikiArticles": 312 }
 
 appendPerformanceDataToFile("test", performanceMetrics);
 // appendPerformanceDataToFile("test", performanceMetrics2);
@@ -7,7 +7,7 @@ appendPerformanceDataToFile("test", performanceMetrics);
 function getFileManager() {
     try {
         return FileManager.iCloud();
-    } catch(e) {
+    } catch (e) {
         return FileManager.local();
     }
 }
@@ -19,8 +19,13 @@ function getCurrentDir() {
 }
 
 /**
- * Attempts to write the file ./storage/name-performance-metrics.csv
+ * Attempts to write the performanceResultsInMillis object to the file ./storage/name-performance-metrics.csv
  * Returns false if it cannot be written.
+ *
+ * Example output looks like this:
+ * getCurrentLocation, getNearbyWikiArticles
+ * 3200, 312
+ * 450, 300
  */
 function appendPerformanceDataToFile(name, performanceMetrics) {
     const fm = getFileManager();
@@ -48,7 +53,7 @@ function appendPerformanceDataToFile(name, performanceMetrics) {
     if (fm.fileExists(metricsPath)) {
         console.log("File exists, reading headers. To keep things easy we're only going to write to these headers.");
 
-         // Doesn't fail with local filesystem
+        // Doesn't fail with local filesystem
         fm.downloadFileFromiCloud(metricsPath);
 
         fileData = fm.readString(metricsPath);

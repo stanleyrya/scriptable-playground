@@ -1,9 +1,9 @@
-const params = {"apiKey": "testtest"};
+const params = { "apiKey": "testtest" };
 
 function getFileManager() {
     try {
         return FileManager.iCloud();
-    } catch(e) {
+    } catch (e) {
         return FileManager.local();
     }
 }
@@ -15,7 +15,7 @@ function getCurrentDir() {
 }
 
 /**
- * Attempts to load the file ./storage/name.json
+ * Attempts to load parameters stored in the file ./storage/name.json
  * Returns null if it cannot be loaded.
  */
 function loadStoredParameters(name) {
@@ -50,7 +50,7 @@ function loadStoredParameters(name) {
 }
 
 /**
- * Attempts to write the file ./storage/name.json
+ * Attempts to write parameters to the file ./storage/name.json
  */
 function writeStoredParameters(name, params) {
     const fm = getFileManager();
@@ -61,11 +61,11 @@ function writeStoredParameters(name, params) {
         console.log("Storage folder does not exist! Creating now.");
         fm.createDirectory(storageDir);
     } else if (!fm.isDirectory(storageDir)) {
-        throw("Storage folder exists but is not a directory!");
+        throw ("Storage folder exists but is not a directory!");
     }
 
     if (fm.fileExists(parameterPath) && fm.isDirectory(parameterPath)) {
-        throw("Parameter file is a directory, please delete!");
+        throw ("Parameter file is a directory, please delete!");
     }
 
     fm.writeString(parameterPath, JSON.stringify(params));

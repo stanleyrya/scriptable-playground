@@ -1,7 +1,15 @@
-// Given coordinates, return a description of the current location in words (town name, etc.)
-const getLocationDescription = async (lat, long) => {
+/*
+ * Given coordinates, return a description of the current location in words (town name, etc.).
+ * Object returned has two properties:
+ * {
+ *   "areaOfInterest": "Spot Pond - Middlesex Fells Reservation",
+ *   "generalArea": "Medford, MA"
+ * }
+ *
+ * More information here: https://github.com/stanleyrya/scriptable-playground/blob/main/reverse-geocode-tests.js
+ */
+const getLocationDescription = async(lat, long) => {
 	return Location.reverseGeocode(lat, long).then((res) => {
-        	console.log(res);
 		const response = res[0];
 
 		let areaOfInterest = "";
@@ -33,8 +41,7 @@ const getLocationDescription = async (lat, long) => {
 			areaOfInterest: areaOfInterest ? areaOfInterest : null,
 			generalArea: generalArea ? generalArea : null
 		};
-	}, err => console.log(`Could not 
-reverse geocode location: ${err}`));
+	}, err => console.log(`Could not reverse geocode location: ${err}`));
 };
 
 // Initial impressions of the data
@@ -76,12 +83,12 @@ reverse geocode location: ${err}`));
 // In Water  ------------
 
 // Spot Pond
-// 
+//
 // Order of value:
 // 1. "inlandWater": "Spot Pond" / "name": "Spot Pond"
 // 2. "areasOfInterest": ["Middlesex Fells Reservation"]
 // 3. "locality": "Medford"
-// 
+//
 // [{
 // 	"thoroughfare": null,
 // 	"isoCountryCode": "US",
@@ -113,17 +120,17 @@ reverse geocode location: ${err}`));
 // 	"subLocality": null,
 // 	"name": "Spot Pond"
 // }]
-// 
+//
 // {"areaOfInterest":"Spot Pond - Middlesex Fells Reservation","generalArea":"Medford, MA"}
-// 
+//
 console.log(await getLocationDescription(42.4582873, -71.1006188))
 
 // Lake Washington
-// 
+//
 // Order of value:
 // 1. "inlandWater": "Lake Washington" / "name": "Lake Washington"
 // 2. "locality": "Bellevue"
-// 
+//
 // [{
 // 	"name": "Lake Washington",
 // 	"country": "United States",
@@ -155,16 +162,16 @@ console.log(await getLocationDescription(42.4582873, -71.1006188))
 // 	"areasOfInterest": null,
 // 	"subAdministrativeArea": "King"
 // }]
-// 
+//
 // {"areaOfInterest":"Lake Washington","generalArea":"Bellevue, WA"}
-// 
+//
 console.log(await getLocationDescription(47.6025303, -122.2538685))
 
 // Pacific Ocean
-// 
+//
 // Order of value:
 // 1. "ocean": "North Pacific Ocean" / "name": "North Pacific Ocean"
-// 
+//
 // [{
 // 	"areasOfInterest": null,
 // 	"administrativeArea": null,
@@ -196,19 +203,19 @@ console.log(await getLocationDescription(47.6025303, -122.2538685))
 // 	},
 // 	"subAdministrativeArea": null
 // }]
-// 
+//
 // {"areaOfInterest":"North Pacific Ocean","generalArea":null}
-// 
+//
 console.log(await getLocationDescription(45.1851250, -130.9194954))
 
 // On Land ------------
 
 // Boston
-// 
+//
 // Order of value:
 // 1. "areasOfInterest": ["Boston Common"] / "name": "Boston Common" / "subLocality": "Boston Common"
 // 2. "locality": "Boston"
-// 
+//
 // [{
 // 	"areasOfInterest": ["Boston Common"],
 // 	"subThoroughfare": "121",
@@ -240,18 +247,18 @@ console.log(await getLocationDescription(45.1851250, -130.9194954))
 // 	"country": "United States",
 // 	"administrativeArea": "MA"
 // }]
-// 
+//
 // {"areaOfInterest":"Boston Common","generalArea":"Boston, MA"}
-// 
+//
 console.log(await getLocationDescription(42.3549970, -71.0644556))
 
 // London
-// 
+//
 // Order of value:
 // 1. "areasOfInterest": ["Buckingham Palace"] / "name": "Buckingham Palace"
 // 2. "subLocality": "City of Westminster"
 // 3. "locality": "London"
-// 
+//
 // [{
 // 	"timeZone": "Europe/London",
 // 	"ocean": null,
@@ -283,16 +290,16 @@ console.log(await getLocationDescription(42.3549970, -71.0644556))
 // 	"subThoroughfare": null,
 // 	"subAdministrativeArea": "London"
 // }]
-// 
+//
 // {"areaOfInterest":"Buckingham Palace","generalArea":"London, England"}
-// 
+//
 console.log(await getLocationDescription(51.5017166, -0.1414114))
 
 // Seattle
-// 
+//
 // Order of value:
 // 1. "locality": "Seattle"
-// 
+//
 // [{
 // 	"postalAddress": {
 // 		"street": "1333 5th Ave",
@@ -324,18 +331,18 @@ console.log(await getLocationDescription(51.5017166, -0.1414114))
 // 	"subLocality": "CBD",
 // 	"isoCountryCode": "US"
 // }]
-// 
+//
 // {"areaOfInterest":null,"generalArea":"Seattle, WA"}
-// 
+//
 console.log(await getLocationDescription(47.6093372, -122.3343570))
 
 // Oslo
-// 
+//
 // Order of value:
 // 1. "name": "Trelastgata"
 // 2. "subLocality": "Sentrum"
 // 3. "locality": "Oslo"
-// 
+//
 // [{
 // 	"thoroughfare": "Trelastgata",
 // 	"areasOfInterest": null,
@@ -367,7 +374,7 @@ console.log(await getLocationDescription(47.6093372, -122.3343570))
 // 	"postalCode": "0191",
 // 	"subLocality": "Sentrum"
 // }]
-// 
+//
 // {"areaOfInterest":null,"generalArea":"Oslo, Oslo"}
-// 
+//
 console.log(await getLocationDescription(59.9103521, 10.7532188))
