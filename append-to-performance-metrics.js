@@ -1,3 +1,7 @@
+// Variables used by Scriptable.
+// These must be at the very top of the file. Do not edit.
+// icon-color: teal; icon-glyph: file-medical-alt;
+
 let performanceMetrics = { "getCurrentLocation": 3200, "getNearbyWikiArticles": 312, "getMapsPicByCurrentLocations": 535 }
 let performanceMetrics2 = { "getCurrentLocation": 3200, "getNearbyWikiArticles": 312 }
 
