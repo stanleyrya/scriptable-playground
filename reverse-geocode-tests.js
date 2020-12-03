@@ -1,3 +1,7 @@
+// Variables used by Scriptable.
+// These must be at the very top of the file. Do not edit.
+// icon-color: deep-green; icon-glyph: search-location;
+
 /*
  * Given coordinates, return a description of the current location in words (town name, etc.).
  * Object returned has two properties:
