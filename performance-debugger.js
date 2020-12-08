@@ -45,19 +45,19 @@ class PerformanceDebugger {
 	 * 450, 300
 	 */
 	appendPerformanceDataToFile(relativePath) {
-        const fm = this.getFileManager();
-        const metricsPath = this.getCurrentDir() + relativePath;
+		const fm = this.getFileManager();
+		const metricsPath = this.getCurrentDir() + relativePath;
 
-        const splitRelativePath = relativePath.split("/");
-        if (splitRelativePath > 1) {
-            const fileName = splitRelativePath[splitRelativePath.length - 1];
-            const jsonDirectory = metricsPath.replace("/" + fileName, "");
-            fm.createDirectory(jsonDirectory, true);
-        }
+		const splitRelativePath = relativePath.split("/");
+		if (splitRelativePath > 1) {
+			const fileName = splitRelativePath[splitRelativePath.length - 1];
+			const jsonDirectory = metricsPath.replace("/" + fileName, "");
+			fm.createDirectory(jsonDirectory, true);
+		}
 
-        if (fm.fileExists(metricsPath) && fm.isDirectory(metricsPath)) {
-            throw ("Performance file is a directory, please delete!");
-        }
+		if (fm.fileExists(metricsPath) && fm.isDirectory(metricsPath)) {
+			throw ("Performance file is a directory, please delete!");
+		}
 
 		let headersAvailable = Object.getOwnPropertyNames(this.performanceResultsInMillis);
 
@@ -115,11 +115,11 @@ class PerformanceDebugger {
 }
 
 function testFunction1() {
-    console.log("hi");
+	console.log("hi");
 }
 
 function testFunction2(arg1) {
-    console.log(arg1);
+	console.log(arg1);
 }
 
 const performanceDebugger = new PerformanceDebugger();

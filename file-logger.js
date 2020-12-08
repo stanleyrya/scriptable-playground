@@ -13,12 +13,12 @@
  *  * writeLogs(relativePath): Writes the stored logs to the relative file path.
  */
 class FileLogger {
-  
-  constructor() {
+
+	constructor() {
 		this.logs = "";
 	}
 
-  /**
+	/**
 	 * Stores the log line in the class so it can be written to a file later.
 	 */
 	log(line) {
@@ -34,19 +34,19 @@ class FileLogger {
 	 * Attempts to write the stored logs to the relative path.
 	 */
 	writeLogs(relativePath) {
-    const fm = this.getFileManager();
-    const logPath = this.getCurrentDir() + relativePath;
+		const fm = this.getFileManager();
+		const logPath = this.getCurrentDir() + relativePath;
 
-    const splitRelativePath = relativePath.split("/");
-    if (splitRelativePath > 1) {
-        const fileName = splitRelativePath[splitRelativePath.length - 1];
-        const jsonDirectory = logPath.replace("/" + fileName, "");
-        fm.createDirectory(jsonDirectory, true);
-    }
+		const splitRelativePath = relativePath.split("/");
+		if (splitRelativePath > 1) {
+			const fileName = splitRelativePath[splitRelativePath.length - 1];
+			const jsonDirectory = logPath.replace("/" + fileName, "");
+			fm.createDirectory(jsonDirectory, true);
+		}
 
-    if (fm.fileExists(logPath) && fm.isDirectory(logPath)) {
-        throw ("Log file is a directory, please delete!");
-    }
+		if (fm.fileExists(logPath) && fm.isDirectory(logPath)) {
+			throw ("Log file is a directory, please delete!");
+		}
 
 		fm.writeString(logPath, this.logs);
 	}
@@ -73,9 +73,9 @@ logger.log("testing here");
 logger.log("also testing here");
 
 try {
-  throw("error!")
+	throw ("error!")
 } catch (err) {
-  logger.log(err)
+	logger.log(err)
 }
 
 logger.writeLogs("storage/" + Script.name() + ".txt");
