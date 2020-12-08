@@ -122,7 +122,7 @@ function testFunction2(arg1) {
     console.log(arg1);
 }
 
-const performanceDebugger = new PerformanceDebugger(Script.name());
+const performanceDebugger = new PerformanceDebugger();
 
 await performanceDebugger.wrap(testFunction1);
 await performanceDebugger.wrap(testFunction2, ["hello"]);
