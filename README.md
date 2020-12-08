@@ -1,14 +1,29 @@
 # scriptable-playground
-A group of scriptable scripts that are used for testing functionality.
 
-### [append-to-performance-metrics](https://github.com/stanleyrya/scriptable-playground/blob/main/append-to-performance-metrics.js)
+### [file-logger](https://github.com/stanleyrya/scriptable-playground/blob/main/file-logger/file-logger.js)
 
-A script that writes metrics to a CSV file.
+Class that can write logs to the file system.
 
-### [read-write-stored-parameters](https://github.com/stanleyrya/scriptable-playground/blob/main/read-write-stored-parameters.js)
+Usage:
+ * log(line): Adds the log line to the class' internal log object.
+ * writeLogs(relativePath): Writes the stored logs to the relative file path.
 
-A script that reads and writes parameters to a file.
+### [json-file-manager](https://github.com/stanleyrya/scriptable-playground/blob/main/json-file-manager/json-file-manager.js)
+
+Class that can read and write JSON objects using the file system.
+
+Usage:
+ * write(relativePath, jsonObject): Writes JSON object to a relative path.
+ * read(relativePath): Reads JSON object from a relative path.
+
+### [performance-debugger](https://github.com/stanleyrya/scriptable-playground/blob/main/performance-debugger/performance-debugger.js)
+
+Class that can capture the time functions take in milliseconds then export them to a CSV.
+
+Usage:
+ * wrap(fn, args): Wrap the function calls you want to monitor with this wrapper.
+ * appendPerformanceDataToFile(relativePath): Use at the end of your script to write the metrics to the CSV file at the relative file path.
 
 ### [reverse-geocode-tests](https://github.com/stanleyrya/scriptable-playground/blob/main/reverse-geocode-tests.js)
 
-A script that tests the reverse geocode functionality. Includes notes on the best way to interpret it.
+A test script to play with reverse geocoding.
