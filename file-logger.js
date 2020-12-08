@@ -10,7 +10,7 @@
  *
  * Usage:
  *  * log(line): Adds the log line to the class' internal log object.
- *  * writeLogs(relativeFilePath): Writes the stored logs to the relative file path.
+ *  * writeLogs(relativePath): Writes the stored logs to the relative file path.
  */
 class FileLogger {
   
