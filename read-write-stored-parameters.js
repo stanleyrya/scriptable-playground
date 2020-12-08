@@ -71,6 +71,6 @@ class JSONFileManager {
 const jsonFileManager = new JSONFileManager();
 const params = { "apiKey": "testtest" };
 
-console.log(jsonFileManager.read("test"));
-jsonFileManager.write("test", params);
-console.log(jsonFileManager.read("test"));
+console.log(jsonFileManager.read("storage/test.json"));
+jsonFileManager.write("storage/test.json", params);
+console.log(jsonFileManager.read("storage/test.json"));
