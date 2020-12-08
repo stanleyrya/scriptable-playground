@@ -6,7 +6,7 @@
  * Class that can write logs to the file system.
  *
  * This is a minified version but it can be replaced with the full version by copy pasting this code!
- * https://github.com/stanleyrya/scriptable-playground/blob/main/write-logs.js
+ * https://github.com/stanleyrya/scriptable-playground/blob/main/file-logger.js
  *
  * Usage:
  *  * log(line): Adds the log line to the class' internal log object.
