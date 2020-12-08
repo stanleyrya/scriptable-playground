@@ -3,13 +3,14 @@
 // icon-color: cyan; icon-glyph: file-signature;
 
 /**
- * Class that can capture the time functions take in milliseconds then export them to a CSV.
- * The log file is stored in ./storage/name-logs.txt
+ * Class that can read and write JSON objects using the file system.
+ *
+ * This is a minified version but it can be replaced with the full version by copy pasting this code!
+ * https://github.com/stanleyrya/scriptable-playground/blob/main/json-file-manager.js
  *
  * Usage:
- *  * For input most of the time you want to use Script.name().
- *  * Use log(line) instead of console.log().
- *  * Use writeLogs() at the end of your script to write the logs to the txt file.
+ *  * write(relativePath, jsonObject): Writes JSON object to a relative path.
+ *  * read(relativePath): Reads JSON object from a relative path.
  */
 class JSONFileManager {
 
