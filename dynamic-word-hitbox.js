@@ -1,7 +1,19 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-blue; icon-glyph: object-ungroup;
-const baseJavascript = `
+class WordLineChart {
+  // Started with LineChart by https://kevinkub.de/
+
+  constructor(width, height, wordData) {
+    this.ctx = new DrawContext();
+    this.ctx.size = new Size(width, height);
+    this.values = wordData.map((item) => {return item.weight});
+    this.wordData = wordData;
+    this.hitBoxes = [];
+  }
+
+  _getBaseTextDimensionJavascript() {
+    return `
 /**
  * Uses canvas.measureText to compute and return the dimensions of the given text of given font in pixels.
  * 
@@ -26,25 +38,52 @@ const text = "REPLACE_TEXT";
 const font = "REPLACE_FONT";
 getTextDimensions(text, font);
 `;
+  }
 
-async function getTextDimensions(text, font, fontSize) {
+  async _getTextDimensions(text, font, fontSize) {
     const cssFont = fontSize + "pt " + font;
-    const javascript = baseJavascript.replace("REPLACE_TEXT", text).replace("REPLACE_FONT", cssFont);
+    const javascript = this._getBaseTextDimensionJavascript().replace("REPLACE_TEXT", text).replace("REPLACE_FONT", cssFont);
     const webView = new WebView();
     return await webView.evaluateJavaScript(javascript, false)
-}
-
-class WordLineChart {
-  // Started with LineChart by https://kevinkub.de/
-
-  constructor(width, height, wordData) {
-    this.ctx = new DrawContext();
-    this.ctx.size = new Size(width, height);
-    this.values = wordData.map((item) => {return item.weight});
-    this.wordData = wordData;
   }
   
-  _calculatePath() {
+  // https://stackoverflow.com/a/306332
+  // if (RectA.Left < RectB.Right &&
+  //     RectA.Right > RectB.Left &&
+  //     RectA.Top > RectB.Bottom &&
+  //     RectA.Bottom < RectB.Top) 
+  _checkCollision(newRect) {
+    for (const placedRect of this.hitBoxes) {
+      if (newRect.minX < newRect.maxX &&
+          newRect.maxX > newRect.minX &&
+          newRect.minY > newRect.maxY &&
+          newRect.maxY < newRect.minY) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  async _addText(x, y, text, font, fontSize) {
+    const dimensions = await this._getTextDimensions(text, font, fontSize);
+    const rect = new Rect(x, y, dimensions.width, dimensions.height);
+
+    if (this._checkCollision(rect)) {
+      return false;
+    }
+
+    this.hitBoxes.push(rect);
+
+    // TODO: add this as an option
+    this.ctx.setFillColor(Color.red());
+    this.ctx.fillRect(rect);
+
+    this.ctx.setFont(new Font(font, fontSize));
+    this.ctx.drawText(text, new Point(x, y));
+    return true;
+  }
+  
+  async _calculatePath() {
     let maxValue = Math.max(...this.values);
     let minValue = Math.min(...this.values);
     let difference = maxValue - minValue;
@@ -55,10 +94,10 @@ class WordLineChart {
         let y = this.ctx.size.height - (current - minValue) / difference * this.ctx.size.height;
         return new Point(x, y);
     });
-    return this._getSmoothPath(points);
+    return await this._getSmoothPath(points);
   }
       
-  _getSmoothPath(points) {
+  async _getSmoothPath(points) {
     let path = new Path();
     path.move(new Point(0, this.ctx.size.height));
     path.addLine(points[0]);
@@ -68,17 +107,34 @@ class WordLineChart {
       let avg = new Point(xAvg, yAvg);
   
       // Word Code ----- //
-      this.ctx.setFont(new Font(this.wordData[i].font, this.wordData[i].fontSize));
-      this.ctx.setFillColor(Color.red());
-      this.ctx.fillRect(new Rect(avg.x, avg.y, wordData[i].dimensions.width, wordData[i].dimensions.height));
-      this.ctx.drawText(this.wordData[i].word, avg)
+      await this._addText(
+        avg.x,
+        avg.y,
+        this.wordData[i].word,
+        this.wordData[i].font,
+        this.wordData[i].fontSize
+      );
+      await this._addText(
+        avg.x + 10,
+        avg.y,
+        this.wordData[i].word,
+        this.wordData[i].font,
+        this.wordData[i].fontSize
+      );
+      await this._addText(
+        avg.x + 100,
+        avg.y,
+        this.wordData[i].word,
+        this.wordData[i].font,
+        this.wordData[i].fontSize
+      );
       // --------------- //
     }
   }
   
-  configure(fn) {
-    this._calculatePath();
-    return this.ctx;
+  async configure(fn) {
+    await this._calculatePath();
+    return this.ctx.getImage();
   }
 
 }
@@ -103,12 +159,11 @@ async function createWidget() {
 
     for (const wordDatum of wordData) {
         const fontSize = wordDatum.weight*3;
-        wordDatum.dimensions = await getTextDimensions(wordDatum.word, font, fontSize);
         wordDatum.font = font;
         wordDatum.fontSize = fontSize;
     }
   
-    let chart = new WordLineChart(600, 250, wordData).configure().getImage();  
+    let chart = await new WordLineChart(600, 250, wordData).configure();
     let image = widget.addImage(chart);
 
 	return widget;
