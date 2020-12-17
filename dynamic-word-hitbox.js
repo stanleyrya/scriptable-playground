@@ -50,14 +50,14 @@ getTextDimensions(text, font);
   // https://stackoverflow.com/a/306332
   // if (RectA.Left < RectB.Right &&
   //     RectA.Right > RectB.Left &&
-  //     RectA.Top > RectB.Bottom &&
-  //     RectA.Bottom < RectB.Top) 
+  //     RectA.Top < RectB.Bottom &&
+  //     RectA.Bottom > RectB.Top) 
   _checkCollision(newRect) {
     for (const placedRect of this.hitBoxes) {
-      if (newRect.minX < newRect.maxX &&
-          newRect.maxX > newRect.minX &&
-          newRect.minY > newRect.maxY &&
-          newRect.maxY < newRect.minY) {
+      if (newRect.minX < placedRect.maxX &&
+          newRect.maxX > placedRect.minX &&
+          newRect.minY < placedRect.maxY &&
+          newRect.maxY > placedRect.minY) {
         return true;
       }
     }
@@ -83,57 +83,21 @@ getTextDimensions(text, font);
     return true;
   }
   
-  async _calculatePath() {
-    let maxValue = Math.max(...this.values);
-    let minValue = Math.min(...this.values);
-    let difference = maxValue - minValue;
-    let count = this.values.length;
-    let step = this.ctx.size.width / (count - 1);
-    let points = this.values.map((current, index, all) => {
-        let x = step*index;
-        let y = this.ctx.size.height - (current - minValue) / difference * this.ctx.size.height;
-        return new Point(x, y);
-    });
-    return await this._getSmoothPath(points);
-  }
-      
-  async _getSmoothPath(points) {
-    let path = new Path();
-    path.move(new Point(0, this.ctx.size.height));
-    path.addLine(points[0]);
-    for(let i = 0; i < points.length-1; i++) {
-      let xAvg = (points[i].x + points[i+1].x) / 2;
-      let yAvg = (points[i].y + points[i+1].y) / 2;
-      let avg = new Point(xAvg, yAvg);
-  
-      // Word Code ----- //
-      await this._addText(
-        avg.x,
-        avg.y,
-        this.wordData[i].word,
-        this.wordData[i].font,
-        this.wordData[i].fontSize
-      );
-      await this._addText(
-        avg.x + 10,
-        avg.y,
-        this.wordData[i].word,
-        this.wordData[i].font,
-        this.wordData[i].fontSize
-      );
-      await this._addText(
-        avg.x + 100,
-        avg.y,
-        this.wordData[i].word,
-        this.wordData[i].font,
-        this.wordData[i].fontSize
-      );
-      // --------------- //
-    }
-  }
-  
   async configure(fn) {
-    await this._calculatePath();
+    await this._addText(
+      10,
+      10,
+      "CHRISTMAS",
+      "TrebuchetMS-Bold",
+      20
+    );
+    await this._addText(
+      100,
+      10,
+      "CHRISTMAS",
+      "TrebuchetMS-Bold",
+      20
+    );
     return this.ctx.getImage();
   }
 
