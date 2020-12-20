@@ -8,7 +8,16 @@ class Spiral {
     this.ctx = new DrawContext();
     this.ctx.opaque = false;
     this.ctx.size = new Size(width, height);
-    this.spacing = 50;
+    // Controls spacing between spiral line
+    this.partsPerCircle = 50;
+    // Controls size of spiral
+    this.radiusIncrement = 0.75;
+  // Controls length of spiral line
+    this.lines = 500;
+    // Controls width
+    this.xRatio = 1
+    // Controls height
+    this.yRatio = 1
   }
   
   _drawSpiral() {
@@ -19,12 +28,12 @@ class Spiral {
     let angle = 0;
     const path = new Path();
     path.move(new Point(centerX, centerY));
-    for (let i = 0; i < 150; i++) {
-        radius += 0.75;
+    for (let i = 0; i < this.lines; i++) {
+        radius += this.radiusIncrement;
         // make a complete circle every 50 iterations
-        angle += (Math.PI * 2) / this.spacing;
-        var x = centerX + radius * Math.cos(angle);
-        var y = centerY + radius * Math.sin(angle);
+        angle += (Math.PI * 2) / this.partsPerCircle;
+        var x = centerX + radius * Math.cos(angle) * this.xRatio;
+        var y = centerY + radius * Math.sin(angle) * this.yRatio;
         path.addLine(new Point(x, y));
     }
     this.ctx.addPath(path);
