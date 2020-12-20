@@ -27,11 +27,12 @@ class WordCloud {
     this.wordData = wordData;
     this.debug = !!debug;
     this.hitBoxes = [];
+    this.textDimensionsMap = {};
     
     // Controls density by changing how many lines make up a single rotation
     this.partsPerCircle = 50 // 50
     // Controls density by changing the angle of the lines drawn
-    this.radiusIncrement = .1 // .75
+    this.radiusIncrement = .2 // .75
     // Stretches the spiral side to side
     this.xRatio = 2 // 1
     // Stretches the spiral up and down
@@ -68,9 +69,16 @@ getTextDimensions(text, font);
 
   async _getTextDimensions(text, font, fontSize) {
     const cssFont = fontSize + "pt " + font;
-    const javascript = this._getBaseTextDimensionJavascript().replace("REPLACE_TEXT", text).replace("REPLACE_FONT", cssFont);
-    const webView = new WebView();
-    return await webView.evaluateJavaScript(javascript, false)
+    const key = text + " " + cssFont;
+    if (this.textDimensionsMap[key]) {
+      return this.textDimensionsMap[key];
+    } else {
+      const javascript = this._getBaseTextDimensionJavascript().replace("REPLACE_TEXT", text).replace("REPLACE_FONT", cssFont);
+      const webView = new WebView();
+      const value = await webView.evaluateJavaScript(javascript, false);
+      this.textDimensionsMap[key] = value;
+      return value;
+    }
   }
   
   // https://stackoverflow.com/a/306332
