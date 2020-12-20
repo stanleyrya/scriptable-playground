@@ -11,21 +11,42 @@ const debug = false;
 const wordData = [  
     { word: "Christmas", weight: 10 },
     { word: "Snow", weight: 9 },
-    { word: "Sleigh", weight: 6 },
-    { word: "Santa", weight: 5 },
-    { word: "Presents", weight: 3},
-    { word: "Candy Canes", weight: 3 }
+    { word: "Sleigh", weight: 8 },
+    { word: "Santa", weight: 7 },
+    { word: "Presents", weight: 7},
+    { word: "Candy Canes", weight: 7 },
+    { word: "Advent", weight: 6},
+    { word: "Carol", weight: 6},
+    { word: "Chimney", weight: 5},
+    { word: "Dreidel", weight: 5},
+    { word: "Druid", weight: 3},
+    { word: "Eggnog", weight: 3},
+    { word: "Elves", weight: 3},
+    { word: "Epiphany", weight: 3},
+    { word: "Feliz Navidad", weight: 3},
+    { word: "Frankincense", weight: 2},
+    { word: "Gingerbread", weight: 2},
+    { word: "Grinch", weight: 2},
+    { word: "Hanukkah", weight: 1},
+    { word: "Holly", weight: 1},
+    { word: "Jolly", weight: 1}
 ];
 
 class WordCloud {
   // Started with LineChart by https://kevinkub.de/
 
-  constructor(width, height, wordData, debug) {
+  constructor(width, height, wordData, weightFunction, debug) {
     this.ctx = new DrawContext();
     this.ctx.opaque = true;
+
     this.ctx.size = new Size(width, height);
+    this.centerX = this.ctx.size.width / 2;
+    this.centerY = this.ctx.size.height / 2;
+    
     this.wordData = wordData;
+    this.weightFunction = weightFunction;
     this.debug = !!debug;
+
     this.hitBoxes = [];
     this.textDimensionsMap = {};
     
@@ -135,21 +156,8 @@ getTextDimensions(text, font);
     this.ctx.drawText(text, new Point(topLeftX, topLeftY));
     return true;
   }
-  
-  async _addWeightedTextCentered(x, y, text, weight) {
-    return await this._addTextCentered(
-      x, y,
-      text,
-      "TrebuchetMS-Bold",
-      weight * 6
-    )
-  }
-  
-  async _writeToSpiral() {
-    const centerX = this.ctx.size.width / 2;
-    const centerY = this.ctx.size.height / 2;
-    let wordIndex = 0;
 
+  async _writeToSpiral(word, weight) {
     let breachedLeft = false;
     let breachedRight = false;
     let breachedTop = false;
@@ -158,25 +166,20 @@ getTextDimensions(text, font);
     let radius = 0;
     let angle = 0;
     const path = new Path();
-    path.move(new Point(centerX, centerY));
+    path.move(new Point(this.centerX, this.centerY));
     while (!(breachedLeft
            && breachedRight
            && breachedTop
            && breachedBottom)) {
         radius += this.radiusIncrement;
-        // make a complete circle every partsPerCicle iterations
         angle += (Math.PI * 2) / this.partsPerCircle;
-        var x = centerX + radius * Math.cos(angle) * this.xRatio;
-        var y = centerY + radius * Math.sin(angle) * this.yRatio;
+        var x = this.centerX + radius * Math.cos(angle) * this.xRatio;
+        var y = this.centerY + radius * Math.sin(angle) * this.yRatio;
 
-        if (await this._addWeightedTextCentered(
-          x, y,
-          this.wordData[wordIndex].word,
-          this.wordData[wordIndex].weight
+        const { font, fontSize } = this.weightFunction(word, weight);
+        if (await this._addTextCentered(
+          x, y, word, font, fontSize
         )) {
-          wordIndex++;
-        }
-        if (wordIndex >= this.wordData.length) {
           break;
         }
 
@@ -198,13 +201,17 @@ getTextDimensions(text, font);
         }
         i++;
     }
-    this.ctx.addPath(path);
-    this.ctx.setStrokeColor(Color.cyan());
-    this.ctx.strokePath();
+    if (this.debug) {
+      this.ctx.addPath(path);
+      this.ctx.setStrokeColor(Color.cyan());
+      this.ctx.strokePath();
+    }
   }
   
   async getImage() {
-    await this._writeToSpiral();
+    for (const wordDatum of this.wordData) {
+      await this._writeToSpiral(wordDatum.word, wordDatum.weight)
+    }
     return this.ctx.getImage();
   }
 
@@ -214,10 +221,17 @@ getTextDimensions(text, font);
  ***** SCRIPTABLE & WIDGET FUNCTIONS *****
  *****************************************/
 
+function weightFunction(text, weight) {
+  return {
+    font: "TrebuchetMS-Bold",
+    fontSize: weight * 8
+  }
+}
+
 async function createWidget(location) {
 	let widget = new ListWidget();
   
-    let chart = await new WordCloud(600, 250, wordData, debug).getImage();
+    let chart = await new WordCloud(600, 250, wordData, weightFunction, debug).getImage();
     let image = widget.addImage(chart);
 
 	return widget;
