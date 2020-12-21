@@ -37,7 +37,7 @@ class WordCloud {
 
   constructor(width, height, wordData, weightFunction, debug) {
     this.ctx = new DrawContext();
-    this.ctx.opaque = true;
+    this.ctx.opaque = false;
 
     this.ctx.size = new Size(width, height);
     this.centerX = this.ctx.size.width / 2;
@@ -129,7 +129,7 @@ getTextDimensions(text, font);
     return false;
   }
   
-  async _addTextCentered(x, y, text, font, fontSize) {
+  async _addTextCentered(x, y, text, font, fontSize, color) {
     const dimensions = await this._getTextDimensions(text, font, fontSize);
     const topLeftX = x - (dimensions.width / 2);
     const topLeftY = y - (dimensions.height / 2);
@@ -148,10 +148,11 @@ getTextDimensions(text, font);
     this.hitBoxes.push(rect);
 
     if (this.debug) {
-      this.ctx.setFillColor(Color.red());
-      this.ctx.fillRect(rect);
+      this.ctx.setStrokeColor(Color.red());
+      this.ctx.strokeRect(rect);
     }
 
+    this.ctx.setTextColor(color);
     this.ctx.setFont(new Font(font, fontSize));
     this.ctx.drawText(text, new Point(topLeftX, topLeftY));
     return true;
@@ -176,9 +177,9 @@ getTextDimensions(text, font);
         var x = this.centerX + radius * Math.cos(angle) * this.xRatio;
         var y = this.centerY + radius * Math.sin(angle) * this.yRatio;
 
-        const { font, fontSize } = this.weightFunction(word, weight);
+        const { font, fontSize, color } = this.weightFunction(word, weight);
         if (await this._addTextCentered(
-          x, y, word, font, fontSize
+          x, y, word, font, fontSize, color
         )) {
           break;
         }
@@ -224,7 +225,8 @@ getTextDimensions(text, font);
 function weightFunction(text, weight) {
   return {
     font: "TrebuchetMS-Bold",
-    fontSize: weight * 8
+    fontSize: weight * 8,
+    color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
   }
 }
 
