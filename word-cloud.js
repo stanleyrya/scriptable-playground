@@ -8,9 +8,11 @@
  */
 
 const debug = false;
+const minFont = 10;
+const maxFont = 60;
 const wordData = [  
     { word: "Christmas", weight: 10 },
-    { word: "Snow", weight: 9 },
+    { word: "Snow", weight: 10 },
     { word: "Sleigh", weight: 8 },
     { word: "Santa", weight: 7 },
     { word: "Presents", weight: 7},
@@ -51,13 +53,16 @@ class WordCloud {
     this.textDimensionsMap = {};
     
     // Controls density by changing how many lines make up a single rotation
-    this.partsPerCircle = 50 // 50
+    this.partsPerCircle = 100 // 50
     // Controls density by changing the angle of the lines drawn
-    this.radiusIncrement = .2 // .75
-    // Stretches the spiral side to side
-    this.xRatio = 2 // 1
-    // Stretches the spiral up and down
-    this.yRatio = 1 // 1
+    this.radiusIncrement = .1 // .75
+    
+    // Stretches the spiral
+    const biggestSide = this.ctx.size.width > this.ctx.size.height ? this.ctx.size.width : this.ctx.size.height;
+    this.xRatio = this.ctx.size.width / biggestSide;
+    this.yRatio = this.ctx.size.height / biggestSide;
+    console.log(this.xRatio);
+    console.log(this.yRatio);
   }
 
   _getBaseTextDimensionJavascript() {
@@ -78,7 +83,7 @@ function getTextDimensions(text, font) {
     return {
         // I'm not sure why yet but 3/4 is perfect for Scriptable's DrawContext
         width: metrics.width * 3/4,
-        height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+        height: (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) * 3/4
     };
 }
 
@@ -148,13 +153,16 @@ getTextDimensions(text, font);
     this.hitBoxes.push(rect);
 
     if (this.debug) {
+      this.ctx.setLineWidth(5);
       this.ctx.setStrokeColor(Color.red());
       this.ctx.strokeRect(rect);
     }
 
+    // I'm not sure why, but the text is a quarter off from the box.
+    const quarterHeight = dimensions.height / 4;
     this.ctx.setTextColor(color);
     this.ctx.setFont(new Font(font, fontSize));
-    this.ctx.drawText(text, new Point(topLeftX, topLeftY));
+    this.ctx.drawText(text, new Point(topLeftX, topLeftY - quarterHeight));
     return true;
   }
 
@@ -203,6 +211,7 @@ getTextDimensions(text, font);
         i++;
     }
     if (this.debug) {
+      this.ctx.setLineWidth(1);
       this.ctx.addPath(path);
       this.ctx.setStrokeColor(Color.cyan());
       this.ctx.strokePath();
@@ -218,31 +227,35 @@ getTextDimensions(text, font);
 
 }
 
-/*****************************************
- ***** SCRIPTABLE & WIDGET FUNCTIONS *****
- *****************************************/
+/*************************
+ ***** CONFIGURATION *****
+ *************************/
 
 function weightFunction(text, weight) {
   return {
     font: "TrebuchetMS-Bold",
-    fontSize: weight * 8,
+    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
   }
 }
 
-async function createWidget(location) {
+async function createWidget(width, height) {
 	let widget = new ListWidget();
-  
-    let chart = await new WordCloud(600, 250, wordData, weightFunction, debug).getImage();
+
+    let chart = await new WordCloud(width, height, wordData, weightFunction, debug).getImage();
     let image = widget.addImage(chart);
+    image.applyFillingContentMode();
 
 	return widget;
 }
 
-const widget = await createWidget();
 if (config.runsInWidget) {
+    const width = config.widgetFamily === "small" ? 250 : 600;
+    const height = config.widgetFamily === "large" ? 600 : 250;
+    const widget = await createWidget(width, height);
 	Script.setWidget(widget);
 	Script.complete();
 } else {
+    const widget = await createWidget(600, 250);
 	await widget.presentMedium();
 }
