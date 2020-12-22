@@ -11,8 +11,21 @@ class WordLineChart {
     this.wordData = wordData;
     this.hitBoxes = [];
   }
+  
+  _getAddFontHTML(fontCssUrl) {
+    return `
+// Preconnecting could decrease load time
+// https://www.cdnplanet.com/blog/faster-google-webfonts-preconnect/
+<link rel="preconnect" href="https://fonts.gstatic.com">
 
-  _getBaseTextDimensionJavascript() {
+<link href="REPLACE_HREF" rel="stylesheet">
+
+// Load the font so its available in the canvas
+<div style="font-family: Fredericka the Great;">.</div>
+`.replace("REPLACE_HREF", fontCssUrl);
+  }
+
+  _getTextDimensionJavascript(text, cssFont) {
     return `
 /**
  * Uses canvas.measureText to compute and return the dimensions of the given text of given font in pixels.
@@ -30,21 +43,29 @@ function getTextDimensions(text, font) {
     return {
         // I'm not sure why yet but 3/4 is perfect for Scriptable's DrawContext
         width: metrics.width * 3/4,
-        height: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+        height: (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) * 3/4
     };
 }
 
 const text = "REPLACE_TEXT";
 const font = "REPLACE_FONT";
 getTextDimensions(text, font);
-`;
+`.replace("REPLACE_TEXT", text)
+.replace("REPLACE_FONT", cssFont);
   }
 
-  async _getTextDimensions(text, font, fontSize) {
+  async _getTextDimensions(text, font, fontSize, fontCssUrl) {
     const cssFont = fontSize + "pt " + font;
-    const javascript = this._getBaseTextDimensionJavascript().replace("REPLACE_TEXT", text).replace("REPLACE_FONT", cssFont);
     const webView = new WebView();
-    return await webView.evaluateJavaScript(javascript, false)
+    
+    if (fontCssUrl) {
+    await webView.loadHTML(
+      this._getAddFontHTML(fontCssUrl))
+    }
+    
+    return await webView.evaluateJavaScript(
+      this._getTextDimensionJavascript(text, cssFont)
+    )
   }
   
   // https://stackoverflow.com/a/306332
@@ -63,41 +84,62 @@ getTextDimensions(text, font);
     }
     return false;
   }
-  
-  async _addText(x, y, text, font, fontSize) {
-    const dimensions = await this._getTextDimensions(text, font, fontSize);
-    const rect = new Rect(x, y, dimensions.width, dimensions.height);
 
-    if (this._checkCollision(rect)) {
+  _checkOutsideBorders(newRect) {
+    if (newRect.minX < 0 ||
+        newRect.maxX > this.ctx.size.width ||
+        newRect.minY < 0 ||
+        newRect.maxY > this.ctx.size.height) {
+      return true;
+    }
+    return false;
+  }
+  
+  async _addTextCentered(x, y, text, font, fontSize, fontCssUrl) {
+    const dimensions = await this._getTextDimensions(text, font, fontSize, fontCssUrl);
+    const topLeftX = x - (dimensions.width / 2);
+    const topLeftY = y - (dimensions.height / 2);
+    const rect = new Rect(
+      topLeftX,
+      topLeftY,
+      dimensions.width,
+      dimensions.height
+    );
+
+    if (this._checkCollision(rect) ||
+        this._checkOutsideBorders(rect)) {
       return false;
     }
 
     this.hitBoxes.push(rect);
 
-    // TODO: add this as an option
     this.ctx.setFillColor(Color.red());
     this.ctx.fillRect(rect);
 
+    // I'm not sure why, but the text is a quarter off from the box.
+    const quarterHeight = dimensions.height / 4;
     this.ctx.setFont(new Font(font, fontSize));
-    this.ctx.drawText(text, new Point(x, y));
+    this.ctx.drawText(text, new Point(topLeftX, topLeftY- quarterHeight));
     return true;
   }
   
   async configure(fn) {
-    await this._addText(
-      10,
-      10,
-      "CHRISTMAS",
-      "TrebuchetMS-Bold",
-      20
+    await this._addTextCentered(
+      this.ctx.size.width / 2,
+      this.ctx.size.height / 2,
+      "santa santa santa",
+      "Fredericka the Great",
+      60,
+      "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
     );
-    await this._addText(
-      100,
-      10,
-      "CHRISTMAS",
-      "TrebuchetMS-Bold",
-      20
-    );
+    // Shouldn't get added
+//     await this._addTextCentered(
+//       this.ctx.size.width / 2 + 10,
+//       this.ctx.size.height / 2,
+//       "santa santa santa",
+//       "Arial-BoldMT",
+//       60
+//     );
     return this.ctx.getImage();
   }
 
@@ -115,10 +157,11 @@ const wordData = [
 async function createWidget() {
 	let widget = new ListWidget();
     // Works fine
-    const font = "TrebuchetMS-Bold";
+//     const font = "TrebuchetMS-Bold";
 //     const font = "Arial-BoldMT";
     // Needs Improvement
 //     const font = "Zapfino";
+    const font = "Lacquer-Regular";
     const fontSize = 20;
 
     for (const wordDatum of wordData) {
