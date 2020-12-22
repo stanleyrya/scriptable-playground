@@ -58,16 +58,6 @@ class WordCloud {
     // Controls buffer around words and edge of canvas
     this.bufferRoom = 10;
   }
-  
-  async _getMinArea() {
-    let minArea = 0;
-    for (const wordDatum of this.wordData) {
-      const { font, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
-      wordDatum.size = await this._getTextDimensions(wordDatum.word, font, fontSize);
-      minArea += wordDatum.size.width * wordDatum.size.height;
-    }
-    return minArea;
-  }
 
   _getBaseTextDimensionJavascript() {
     return `
@@ -177,6 +167,8 @@ getTextDimensions(text, font);
     let breachedBottom = false;
     let radius = 0;
     let angle = 0;
+    const direction = Math.random() < 0.5 ? -1 : 1;
+    
     const path = new Path();
     path.move(new Point(this.centerX, this.centerY));
     
@@ -186,7 +178,7 @@ getTextDimensions(text, font);
            && breachedTop
            && breachedBottom)) {
         radius += this.radiusIncrement;
-        angle += (Math.PI * 2) / this.partsPerCircle;
+        angle += (Math.PI * 2) / this.partsPerCircle * direction;
         let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
         let y = this.centerY + radius * Math.sin(angle) * this.yRatio;
 
@@ -224,16 +216,41 @@ getTextDimensions(text, font);
     return placed;
   }
   
+  async _writeAllWordsToSpiral() {
+    let placedAll = true;
+    for (const wordDatum of this.wordData) {
+      if (!(await this._writeToSpiral(wordDatum.word, wordDatum.weight))) {
+        placedAll = false;
+        // Stop trying to place words if growToFit
+        if (this.growToFit) {
+          return false;
+        }
+      }
+    }
+    return placedAll;
+  }
+  
+  async _getMinArea() {
+    let minArea = 0;
+    for (const wordDatum of this.wordData) {
+      const { font, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
+      wordDatum.size = await this._getTextDimensions(wordDatum.word, font, fontSize);
+      minArea += wordDatum.size.width * wordDatum.size.height;
+    }
+    return minArea;
+  }
+  
   async getImage() {
     let ctxWidth = this.providedWidth;
     let ctxHeight = this.providedHeight;
-//     let minArea = await this._getMinArea();
-//     console.log(minArea);
-//     while (minArea > (ctxWidth * ctxHeight)) {
-//       ctxWidth = ctxWidth * 1.2;
-//       ctxHeight = ctxHeight * 1.2;
-//       console.log(ctxWidth + " " + ctxHeight);
-//     }
+    if (this.growToFit) {
+      let minArea = await this._getMinArea();
+      while (minArea > (ctxWidth * ctxHeight)) {
+        ctxWidth = ctxWidth + (ctxWidth * 0.1);
+        ctxHeight = ctxHeight + (ctxHeight * 0.1);
+        console.log("increasing because of min area");
+      }
+    }
 
     let placedAll = false;
     while(!placedAll) {
@@ -244,18 +261,16 @@ getTextDimensions(text, font);
       this.centerY = ctxHeight / 2;
       this.hitBoxes = [];
 
-      placedAll = true;
-      for (const wordDatum of this.wordData) {
-        const placed = await this._writeToSpiral(wordDatum.word, wordDatum.weight);
-        if (!placed) {
-          placedAll = false;
-          break;
-        }
+      placedAll = await this._writeAllWordsToSpiral();
+
+      if (!this.growToFit) {
+        break;
       }
       
       if (!placedAll) {
         ctxWidth = ctxWidth + (this.providedWidth * 0.1);
-        ctxHeight = ctxHeight + (this.providedHeight * 0.1);;
+        ctxHeight = ctxHeight + (this.providedHeight * 0.1);
+        console.log("increasing because words couldn't fit area");
       }
     }
     
@@ -284,10 +299,7 @@ function weightFunction(text, weight) {
 async function createWidget(width, height) {
 	let widget = new ListWidget();
 
-    let chart = await new WordCloud(width, height, wordData, weightFunction, growToFit, debug).getImage();
-//     let image = widget.addImage(chart);
-//     image.applyFillingContentMode();
-    widget.backgroundImage = chart;
+    widget.backgroundImage = await new WordCloud(width, height, wordData, weightFunction, growToFit, debug).getImage();
 
 	return widget;
 }
@@ -299,6 +311,6 @@ if (config.runsInWidget) {
 	Script.setWidget(widget);
 	Script.complete();
 } else {
-    const widget = await createWidget(530, 530);
+    const widget = await createWidget(250, 250);
 	await widget.presentLarge();
 }
