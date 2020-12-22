@@ -1,12 +1,12 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: cyan; icon-glyph: cloud;
-
 /*
  * Authors: Ryan Stanley (stanleyrya@gmail.com)
  * Description: Scriptable code to display a word cloud.
  */
 
+const growToFit = true;
 const debug = false;
 const minFont = 10;
 const maxFont = 60;
@@ -37,32 +37,36 @@ const wordData = [
 class WordCloud {
   // Started with LineChart by https://kevinkub.de/
 
-  constructor(width, height, wordData, weightFunction, debug) {
-    this.ctx = new DrawContext();
-    this.ctx.opaque = false;
-
-    this.ctx.size = new Size(width, height);
-    this.centerX = this.ctx.size.width / 2;
-    this.centerY = this.ctx.size.height / 2;
-    
+  constructor(width, height, wordData, weightFunction, growToFit, debug) {
+    this.providedWidth = width;
+    this.providedHeight = height;
     this.wordData = wordData;
     this.weightFunction = weightFunction;
+    this.growToFit = !!growToFit;
     this.debug = !!debug;
 
-    this.hitBoxes = [];
     this.textDimensionsMap = {};
     
+    // Stretches the spiral
+    const biggestSide = width > height ? width : height;
+    this.xRatio = width / biggestSide;
+    this.yRatio = height / biggestSide;
     // Controls density by changing how many lines make up a single rotation
     this.partsPerCircle = 100 // 50
     // Controls density by changing the angle of the lines drawn
     this.radiusIncrement = .1 // .75
-    
-    // Stretches the spiral
-    const biggestSide = this.ctx.size.width > this.ctx.size.height ? this.ctx.size.width : this.ctx.size.height;
-    this.xRatio = this.ctx.size.width / biggestSide;
-    this.yRatio = this.ctx.size.height / biggestSide;
-    console.log(this.xRatio);
-    console.log(this.yRatio);
+    // Controls buffer around words and edge of canvas
+    this.bufferRoom = 10;
+  }
+  
+  async _getMinArea() {
+    let minArea = 0;
+    for (const wordDatum of this.wordData) {
+      const { font, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
+      wordDatum.size = await this._getTextDimensions(wordDatum.word, font, fontSize);
+      minArea += wordDatum.size.width * wordDatum.size.height;
+    }
+    return minArea;
   }
 
   _getBaseTextDimensionJavascript() {
@@ -114,10 +118,10 @@ getTextDimensions(text, font);
   //     RectA.Bottom > RectB.Top) 
   _checkCollision(newRect) {
     for (const placedRect of this.hitBoxes) {
-      if (newRect.minX < placedRect.maxX &&
-          newRect.maxX > placedRect.minX &&
-          newRect.minY < placedRect.maxY &&
-          newRect.maxY > placedRect.minY) {
+      if (newRect.minX < placedRect.maxX + this.bufferRoom &&
+          newRect.maxX > placedRect.minX - this.bufferRoom &&
+          newRect.minY < placedRect.maxY + this.bufferRoom &&
+          newRect.maxY > placedRect.minY - this.bufferRoom) {
         return true;
       }
     }
@@ -125,10 +129,10 @@ getTextDimensions(text, font);
   }
 
   _checkOutsideBorders(newRect) {
-    if (newRect.minX < 0 ||
-        newRect.maxX > this.ctx.size.width ||
-        newRect.minY < 0 ||
-        newRect.maxY > this.ctx.size.height) {
+    if (newRect.minX < 0 + this.bufferRoom ||
+        newRect.maxX > this.ctx.size.width - this.bufferRoom ||
+        newRect.minY < 0 + this.bufferRoom ||
+        newRect.maxY > this.ctx.size.height - this.bufferRoom) {
       return true;
     }
     return false;
@@ -171,24 +175,26 @@ getTextDimensions(text, font);
     let breachedRight = false;
     let breachedTop = false;
     let breachedBottom = false;
-    let i=0;
     let radius = 0;
     let angle = 0;
     const path = new Path();
     path.move(new Point(this.centerX, this.centerY));
+    
+    let placed = false;
     while (!(breachedLeft
            && breachedRight
            && breachedTop
            && breachedBottom)) {
         radius += this.radiusIncrement;
         angle += (Math.PI * 2) / this.partsPerCircle;
-        var x = this.centerX + radius * Math.cos(angle) * this.xRatio;
-        var y = this.centerY + radius * Math.sin(angle) * this.yRatio;
+        let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
+        let y = this.centerY + radius * Math.sin(angle) * this.yRatio;
 
         const { font, fontSize, color } = this.weightFunction(word, weight);
         if (await this._addTextCentered(
           x, y, word, font, fontSize, color
         )) {
+          placed = true;
           break;
         }
 
@@ -208,7 +214,6 @@ getTextDimensions(text, font);
         if (y > this.ctx.size.height) {
           breachedBottom = true;
         }
-        i++;
     }
     if (this.debug) {
       this.ctx.setLineWidth(1);
@@ -216,12 +221,49 @@ getTextDimensions(text, font);
       this.ctx.setStrokeColor(Color.cyan());
       this.ctx.strokePath();
     }
+    return placed;
   }
   
   async getImage() {
-    for (const wordDatum of this.wordData) {
-      await this._writeToSpiral(wordDatum.word, wordDatum.weight)
+    let ctxWidth = this.providedWidth;
+    let ctxHeight = this.providedHeight;
+//     let minArea = await this._getMinArea();
+//     console.log(minArea);
+//     while (minArea > (ctxWidth * ctxHeight)) {
+//       ctxWidth = ctxWidth * 1.2;
+//       ctxHeight = ctxHeight * 1.2;
+//       console.log(ctxWidth + " " + ctxHeight);
+//     }
+
+    let placedAll = false;
+    while(!placedAll) {
+      this.ctx = new DrawContext();
+      this.ctx.opaque = false;
+      this.ctx.size = new Size(ctxWidth, ctxHeight);
+      this.centerX = ctxWidth / 2;
+      this.centerY = ctxHeight / 2;
+      this.hitBoxes = [];
+
+      placedAll = true;
+      for (const wordDatum of this.wordData) {
+        const placed = await this._writeToSpiral(wordDatum.word, wordDatum.weight);
+        if (!placed) {
+          placedAll = false;
+          break;
+        }
+      }
+      
+      if (!placedAll) {
+        ctxWidth = ctxWidth + (this.providedWidth * 0.1);
+        ctxHeight = ctxHeight + (this.providedHeight * 0.1);;
+      }
     }
+    
+    if (this.debug) {
+      this.ctx.setStrokeColor(Color.red());
+      this.ctx.strokeRect(new Rect(0, 0, ctxWidth, ctxHeight));
+    }
+
     return this.ctx.getImage();
   }
 
@@ -242,20 +284,21 @@ function weightFunction(text, weight) {
 async function createWidget(width, height) {
 	let widget = new ListWidget();
 
-    let chart = await new WordCloud(width, height, wordData, weightFunction, debug).getImage();
-    let image = widget.addImage(chart);
-    image.applyFillingContentMode();
+    let chart = await new WordCloud(width, height, wordData, weightFunction, growToFit, debug).getImage();
+//     let image = widget.addImage(chart);
+//     image.applyFillingContentMode();
+    widget.backgroundImage = chart;
 
 	return widget;
 }
 
 if (config.runsInWidget) {
-    const width = config.widgetFamily === "small" ? 250 : 600;
-    const height = config.widgetFamily === "large" ? 600 : 250;
+    const width = config.widgetFamily === "small" ? 250 : 530;
+    const height = config.widgetFamily === "large" ? 530 : 250;
     const widget = await createWidget(width, height);
 	Script.setWidget(widget);
 	Script.complete();
 } else {
-    const widget = await createWidget(600, 250);
-	await widget.presentMedium();
+    const widget = await createWidget(530, 530);
+	await widget.presentLarge();
 }
