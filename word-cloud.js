@@ -159,6 +159,10 @@ getTextDimensions(text, font);
     this.ctx.drawText(text, new Point(topLeftX, topLeftY - quarterHeight));
     return true;
   }
+  
+  _getRandomDirection() {
+    return Math.random() < 0.5 ? -1 : 1;
+  }
 
   async _writeToSpiral(word, weight) {
     let breachedLeft = false;
@@ -167,7 +171,8 @@ getTextDimensions(text, font);
     let breachedBottom = false;
     let radius = 0;
     let angle = 0;
-    const direction = Math.random() < 0.5 ? -1 : 1;
+    let radiusDirection = this._getRandomDirection();
+    let angleDirection = this._getRandomDirection();
     
     const path = new Path();
     path.move(new Point(this.centerX, this.centerY));
@@ -177,8 +182,8 @@ getTextDimensions(text, font);
            && breachedRight
            && breachedTop
            && breachedBottom)) {
-        radius += this.radiusIncrement;
-        angle += (Math.PI * 2) / this.partsPerCircle * direction;
+        radius += this.radiusIncrement * angleDirection;
+        angle += (Math.PI * 2) / this.partsPerCircle * radiusDirection;
         let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
         let y = this.centerY + radius * Math.sin(angle) * this.yRatio;
 
@@ -312,5 +317,5 @@ if (config.runsInWidget) {
 	Script.complete();
 } else {
     const widget = await createWidget(250, 250);
-	await widget.presentLarge();
+	await widget.presentSmall();
 }
