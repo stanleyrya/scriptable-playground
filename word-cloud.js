@@ -34,6 +34,26 @@ const wordData = [
     { word: "Jolly", weight: 1}
 ];
 
+class WordCloudFont {
+  /**
+   * Please note that pre-installed fonts need to use
+   * the name provieded here: http://iosfonts.com
+   * For example: TrebuchetMS-Bold
+   *
+   * Custom fonts such as google's fonts need to use
+   * the name of their font family and the URL to
+   * their css stylesheet. Here's an example for
+   * google:
+   * https://fonts.google.com/specimen/Fredericka+the+Great?sidebar.open=true&selection.family=Fredericka+the+Great#about
+   * -> fontName: Fredericka the Great
+   * -> cssUrl: https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap
+   */
+  constructor(fontName, cssUrl) {
+    this.fontName = fontName;
+    this.cssURL = cssUrl // only for custom fonts
+  }
+}
+
 class WordCloud {
   // Started with LineChart by https://kevinkub.de/
 
@@ -45,6 +65,8 @@ class WordCloud {
     this.growToFit = !!growToFit;
     this.debug = !!debug;
 
+    this.webView = new WebView();
+    this.loadedCssUrls = {};
     this.textDimensionsMap = {};
     
     // Stretches the spiral
@@ -59,7 +81,21 @@ class WordCloud {
     this.bufferRoom = 10;
   }
 
-  _getBaseTextDimensionJavascript() {
+  _getAddFontHTML(fontFamily, fontCssUrl) {
+    return `
+// Preconnecting could decrease load time
+// https://www.cdnplanet.com/blog/faster-google-webfonts-preconnect/
+<link rel="preconnect" href="https://fonts.gstatic.com">
+
+<link href="REPLACE_HREF" rel="stylesheet">
+
+// Load the font so its available in the canvas
+<div style="font-family: REPLACE_FONT_FAMILY;">.</div>
+`.replace("REPLACE_HREF", fontCssUrl)
+.replace("REPLACE_FONT_FAMILY", fontFamily);
+  }
+
+  _getTextDimensionJavascript(text, cssFont) {
     return `
 /**
  * Uses canvas.measureText to compute and return the dimensions of the given text of given font in pixels.
@@ -81,21 +117,27 @@ function getTextDimensions(text, font) {
     };
 }
 
-const text = "REPLACE_TEXT";
-const font = "REPLACE_FONT";
-getTextDimensions(text, font);
-`;
+getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
+`.replace("REPLACE_TEXT", text)
+.replace("REPLACE_FONT", cssFont);
   }
 
-  async _getTextDimensions(text, font, fontSize) {
-    const cssFont = fontSize + "pt " + font;
+  async _getTextDimensions(text, wordCloudFont, fontSize) {
+    const cssFont = fontSize + "pt " + wordCloudFont.fontName;
     const key = text + " " + cssFont;
     if (this.textDimensionsMap[key]) {
       return this.textDimensionsMap[key];
     } else {
-      const javascript = this._getBaseTextDimensionJavascript().replace("REPLACE_TEXT", text).replace("REPLACE_FONT", cssFont);
-      const webView = new WebView();
-      const value = await webView.evaluateJavaScript(javascript, false);
+      if (wordCloudFont.cssURL) {
+        if (!this.loadedCssUrls[wordCloudFont.cssURL]){ 
+          await this.webView.loadHTML(this._getAddFontHTML(wordCloudFont.fontName, wordCloudFont.cssURL));
+          this.loadedCssUrls[wordCloudFont.cssURL] = true;
+        }
+      }
+
+      const value = await this.webView.evaluateJavaScript(
+        this._getTextDimensionJavascript(text, cssFont)
+      );
       this.textDimensionsMap[key] = value;
       return value;
     }
@@ -128,8 +170,8 @@ getTextDimensions(text, font);
     return false;
   }
   
-  async _addTextCentered(x, y, text, font, fontSize, color) {
-    const dimensions = await this._getTextDimensions(text, font, fontSize);
+  async _addTextCentered(x, y, text, wordCloudFont, fontSize, color) {
+    const dimensions = await this._getTextDimensions(text, wordCloudFont, fontSize);
     const topLeftX = x - (dimensions.width / 2);
     const topLeftY = y - (dimensions.height / 2);
     const rect = new Rect(
@@ -155,8 +197,13 @@ getTextDimensions(text, font);
     // I'm not sure why, but the text is a quarter off from the box.
     const quarterHeight = dimensions.height / 4;
     this.ctx.setTextColor(color);
-    this.ctx.setFont(new Font(font, fontSize));
-    this.ctx.drawText(text, new Point(topLeftX, topLeftY - quarterHeight));
+    this.ctx.setFont(
+      new Font(wordCloudFont.fontName, fontSize)
+    );
+    this.ctx.drawText(
+      text,
+      new Point(topLeftX, topLeftY - quarterHeight)
+    );
     return true;
   }
   
@@ -187,9 +234,9 @@ getTextDimensions(text, font);
         let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
         let y = this.centerY + radius * Math.sin(angle) * this.yRatio;
 
-        const { font, fontSize, color } = this.weightFunction(word, weight);
+        const { wordCloudFont, fontSize, color } = this.weightFunction(word, weight);
         if (await this._addTextCentered(
-          x, y, word, font, fontSize, color
+          x, y, word, wordCloudFont, fontSize, color
         )) {
           placed = true;
           break;
@@ -213,7 +260,7 @@ getTextDimensions(text, font);
         }
     }
     if (this.debug) {
-      this.ctx.setLineWidth(1);
+      this.ctx.setLineWidth(.1);
       this.ctx.addPath(path);
       this.ctx.setStrokeColor(Color.cyan());
       this.ctx.strokePath();
@@ -238,8 +285,8 @@ getTextDimensions(text, font);
   async _getMinArea() {
     let minArea = 0;
     for (const wordDatum of this.wordData) {
-      const { font, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
-      wordDatum.size = await this._getTextDimensions(wordDatum.word, font, fontSize);
+      const { wordCloudFont, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
+      wordDatum.size = await this._getTextDimensions(wordDatum.word, wordCloudFont, fontSize);
       minArea += wordDatum.size.width * wordDatum.size.height;
     }
     return minArea;
@@ -289,22 +336,67 @@ getTextDimensions(text, font);
 
 }
 
-/*************************
- ***** CONFIGURATION *****
- *************************/
+/****************************
+ ***** WEIGHT FUNCTIONS *****
+ ****************************/
 
-function weightFunction(text, weight) {
+// Functions that use fonts already installed in iOS
+// http://iosfonts.com
+
+function simpleAndCleanWeightFunction(text, weight) {
   return {
-    font: "TrebuchetMS-Bold",
+    wordCloudFont: new WordCloudFont("TrebuchetMS-Bold"),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
   }
 }
 
+function festiveWeightFunction(text, weight) {
+  return {
+    wordCloudFont: "SnellRoundhand-Black", // SavoyeLetPlain
+    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
+    color: Math.random() < 0.5 ? Color.red() : Color.green()
+  }
+}
+
+function spookyWeightFunction(text, weight) {
+  return {
+    wordCloudFont: "AvenirNextCondensed-Heavy",
+    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
+    color: Color.orange()
+  }
+}
+
+// Functions that use fonts installed through an app
+// http://iosfonts.com
+
+const frederickaTheGreat = new WordCloudFont(
+  "Fredericka the Great",
+  "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
+);
+function spookyWeightFunction2(text, weight) {
+  return {
+    wordCloudFont: frederickaTheGreat,
+    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
+    color: Color.orange()
+  }
+}
+
+/*************************
+ ***** WIDGET CONFIG *****
+ *************************/
+
 async function createWidget(width, height) {
 	let widget = new ListWidget();
 
-    widget.backgroundImage = await new WordCloud(width, height, wordData, weightFunction, growToFit, debug).getImage();
+    widget.backgroundImage = await new WordCloud(
+      width,
+      height,
+      wordData,
+      spookyWeightFunction2,
+      growToFit,
+      debug
+    ).getImage();
 
 	return widget;
 }
