@@ -1,18 +1,15 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-blue; icon-glyph: object-ungroup;
-class WordLineChart {
-  // Started with LineChart by https://kevinkub.de/
+class HitBoxTester {
 
-  constructor(width, height, wordData) {
+  constructor(width, height) {
     this.ctx = new DrawContext();
     this.ctx.size = new Size(width, height);
-    this.values = wordData.map((item) => {return item.weight});
-    this.wordData = wordData;
     this.hitBoxes = [];
   }
   
-  _getAddFontHTML(fontCssUrl) {
+  _getAddFontHTML(fontFamily, fontCssUrl) {
     return `
 // Preconnecting could decrease load time
 // https://www.cdnplanet.com/blog/faster-google-webfonts-preconnect/
@@ -21,8 +18,9 @@ class WordLineChart {
 <link href="REPLACE_HREF" rel="stylesheet">
 
 // Load the font so its available in the canvas
-<div style="font-family: Fredericka the Great;">.</div>
-`.replace("REPLACE_HREF", fontCssUrl);
+<div style="font-family: REPLACE_FONT_FAMILY;">.</div>
+`.replace("REPLACE_HREF", fontCssUrl)
+.replace("REPLACE_FONT_FAMILY", fontFamily);
   }
 
   _getTextDimensionJavascript(text, cssFont) {
@@ -54,13 +52,13 @@ getTextDimensions(text, font);
 .replace("REPLACE_FONT", cssFont);
   }
 
-  async _getTextDimensions(text, font, fontSize, fontCssUrl) {
-    const cssFont = fontSize + "pt " + font;
+  async _getTextDimensions(text, fontFamily, fontSize, fontCssUrl) {
+    const cssFont = fontSize + "pt " + fontFamily;
     const webView = new WebView();
     
     if (fontCssUrl) {
     await webView.loadHTML(
-      this._getAddFontHTML(fontCssUrl))
+      this._getAddFontHTML(fontFamily, fontCssUrl))
     }
     
     return await webView.evaluateJavaScript(
@@ -133,44 +131,22 @@ getTextDimensions(text, font);
       "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
     );
     // Shouldn't get added
-//     await this._addTextCentered(
-//       this.ctx.size.width / 2 + 10,
-//       this.ctx.size.height / 2,
-//       "santa santa santa",
-//       "Arial-BoldMT",
-//       60
-//     );
+    await this._addTextCentered(
+      this.ctx.size.width / 2 + 10,
+      this.ctx.size.height / 2,
+      "santa santa santa",
+      "Arial-BoldMT",
+      60
+    );
     return this.ctx.getImage();
   }
 
 }
 
-const wordData = [  
-    { word: "Christmas", weight: 10 },
-    { word: "Snow Snow Snow", weight: 9 },
-    { word: "Sleigh", weight: 6 },
-    { word: "Santa", weight: 5 },
-    { word: "Communism", weight: 1 },
-    { word: "Candy Canes", weight: 1 }
-]
-
 async function createWidget() {
 	let widget = new ListWidget();
-    // Works fine
-//     const font = "TrebuchetMS-Bold";
-//     const font = "Arial-BoldMT";
-    // Needs Improvement
-//     const font = "Zapfino";
-    const font = "Lacquer-Regular";
-    const fontSize = 20;
-
-    for (const wordDatum of wordData) {
-        const fontSize = wordDatum.weight*3;
-        wordDatum.font = font;
-        wordDatum.fontSize = fontSize;
-    }
   
-    let chart = await new WordLineChart(600, 250, wordData).configure();
+    let chart = await new HitBoxTester(600, 250).configure();
     let image = widget.addImage(chart);
 
 	return widget;
