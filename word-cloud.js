@@ -327,6 +327,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     }
     
     if (this.debug) {
+      this.ctx.setLineWidth(5);
       this.ctx.setStrokeColor(Color.red());
       this.ctx.strokeRect(new Rect(0, 0, ctxWidth, ctxHeight));
     }
@@ -345,40 +346,84 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
 
 function simpleAndCleanWeightFunction(text, weight) {
   return {
-    wordCloudFont: new WordCloudFont("TrebuchetMS-Bold"),
+    wordCloudFont: new WordCloudFont(
+      "TrebuchetMS-Bold"
+    ),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
   }
 }
 
-function festiveWeightFunction(text, weight) {
+function builtInFestiveWeightFunction(text, weight) {
   return {
-    wordCloudFont: "SnellRoundhand-Black", // SavoyeLetPlain
+    wordCloudFont: new WordCloudFont(
+      "SnellRoundhand-Black"
+    ),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Math.random() < 0.5 ? Color.red() : Color.green()
   }
 }
 
+function terminalWeightFunction(text, weight) {
+  const color = new Color(
+    Color.green().hex,
+    Color.green().alpha * (weight / 10)
+  );
+  return {
+    wordCloudFont: new WordCloudFont(
+      "CourierNewPS-BoldMT"
+    ),
+    fontSize: minFont,
+    color: color
+  }
+}
+
+/**
+ * Functions that use fonts installed through an app.
+ * A url of the css stylesheet is still required due
+ * to limitations of the system.
+ *
+ * This article [1] suggests this app [2] is the
+ * safest way to download fonts to iOS. Be careful,
+ * use at your own risk!
+ *
+ * [1] - https://9to5mac.com/2020/06/12/fontcase-open-source-fonts-app-iphone-ipad/?_gl=1*y6rqnk*_ga*YW1wLXQ3TjlTR2RZT2p2TmF0UG95cm1xM09SVXRmOHJwOERaaE1Za0MwQllDQjQzay11M3NDVkc4Wkh6NHVGdEgxeEc.
+ * [2] - https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470
+ */
+
+// https://fonts.google.com/specimen/Lacquer
 function spookyWeightFunction(text, weight) {
   return {
-    wordCloudFont: "AvenirNextCondensed-Heavy",
+    wordCloudFont: new WordCloudFont(
+      "Lacquer",
+      "https://fonts.googleapis.com/css2?family=Lacquer&display=swap"
+    ),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Color.orange()
   }
 }
 
-// Functions that use fonts installed through an app
-// http://iosfonts.com
-
-const frederickaTheGreat = new WordCloudFont(
-  "Fredericka the Great",
-  "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
-);
-function spookyWeightFunction2(text, weight) {
+// https://fonts.google.com/specimen/Cinzel+Decorative
+function customFestiveWeightFunction(text, weight) {
   return {
-    wordCloudFont: frederickaTheGreat,
+    wordCloudFont: new WordCloudFont(
+      "Cinzel Decorative",
+      "https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap"
+    ),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
-    color: Color.orange()
+    color: Math.random() < 0.5 ? Color.red() : Color.green()
+  }
+}
+
+// https://fonts.google.com/specimen/Fredericka+the+Great
+function stencilWeightFunction(text, weight) {
+  return {
+    wordCloudFont: new WordCloudFont(
+      "Fredericka the Great",
+      "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
+    ),
+    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
+    color: Color.lightGray()
   }
 }
 
@@ -387,27 +432,31 @@ function spookyWeightFunction2(text, weight) {
  *************************/
 
 async function createWidget(width, height) {
-	let widget = new ListWidget();
+  let widget = new ListWidget();
+  widget.setPadding(0,0,0,0);
 
-    widget.backgroundImage = await new WordCloud(
-      width,
-      height,
-      wordData,
-      spookyWeightFunction2,
-      growToFit,
-      debug
-    ).getImage();
+  const image = await new WordCloud(
+    width,
+    height,
+    wordData,
+    terminalWeightFunction,
+    growToFit,
+    debug
+  ).getImage();
+  const widgetImage = widget.addImage(image);
+  widgetImage.applyFillingContentMode();
+  widgetImage.centerAlignImage();
 
-	return widget;
+  return widget;
 }
 
 if (config.runsInWidget) {
-    const width = config.widgetFamily === "small" ? 250 : 530;
-    const height = config.widgetFamily === "large" ? 530 : 250;
-    const widget = await createWidget(width, height);
-	Script.setWidget(widget);
-	Script.complete();
+  const width = config.widgetFamily === "small" ? 250 : 530;
+  const height = config.widgetFamily === "large" ? 530 : 250;
+  const widget = await createWidget(width, height);
+  Script.setWidget(widget);
+  Script.complete();
 } else {
-    const widget = await createWidget(250, 250);
-	await widget.presentSmall();
+  const widget = await createWidget(530, 530);
+  await widget.presentLarge();
 }
