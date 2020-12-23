@@ -341,8 +341,12 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
  ***** WEIGHT FUNCTIONS *****
  ****************************/
 
-// Functions that use fonts already installed in iOS
-// http://iosfonts.com
+/**
+ * Functions that use fonts already installed in iOS.
+ *
+ * Find the fonts here:
+ * http://iosfonts.com
+ */
 
 function simpleAndCleanWeightFunction(text, weight) {
   return {
@@ -364,7 +368,7 @@ function builtInFestiveWeightFunction(text, weight) {
   }
 }
 
-function terminalWeightFunction(text, weight) {
+function hackerWeightFunction(text, weight) {
   const color = new Color(
     Color.green().hex,
     Color.green().alpha * (weight / 10)
@@ -381,7 +385,8 @@ function terminalWeightFunction(text, weight) {
 /**
  * Functions that use fonts installed through an app.
  * A url of the css stylesheet is still required due
- * to limitations of the system.
+ * to limitations of the system. The fontName is the
+ * font family.
  *
  * This article [1] suggests this app [2] is the
  * safest way to download fonts to iOS. Be careful,
@@ -439,7 +444,7 @@ async function createWidget(width, height) {
     width,
     height,
     wordData,
-    terminalWeightFunction,
+    hackerWeightFunction,
     growToFit,
     debug
   ).getImage();
