@@ -7,7 +7,7 @@
  */
 
 const growToFit = true;
-const debug = true;
+const debug = false;
 const minFont = 10;
 const maxFont = 60;
 const wordData = [  
@@ -275,6 +275,18 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     return false;
   }
   
+  _checkInside(x, y) {
+    for (const placedRect of this.hitBoxes) {
+      if (x < placedRect.maxX + this.bufferRoom &&
+          x > placedRect.minX - this.bufferRoom &&
+          y < placedRect.maxY + this.bufferRoom &&
+          y > placedRect.minY - this.bufferRoom) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   async _addTextCentered(x, y, text, wordCloudFont, fontSize, color) {
     const dimensions = await this._getTextDimensions(text, wordCloudFont, fontSize);
     const topLeftX = x - (dimensions.width / 2);
@@ -338,6 +350,12 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
         angle += (Math.PI * 2) / this.partsPerCircle * radiusDirection;
         let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
         let y = this.centerY + radius * Math.sin(angle) * this.yRatio;
+        if (this.debug) {
+          path.addLine(new Point(x, y));
+        }
+        if (this._checkInside(x, y)) {
+          continue;
+        }
 
         const { wordCloudFont, fontSize, color } = this.weightFunction(word, weight);
         if (await this._addTextCentered(
@@ -345,10 +363,6 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
         )) {
           placed = true;
           break;
-        }
-
-        if (this.debug) {
-          path.addLine(new Point(x, y));
         }
 
         if (x < 0) {
@@ -420,7 +434,8 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     let ctxWidth = this.providedWidth;
     let ctxHeight = this.providedHeight;
     if (this.growToFit) {
-      const { newWidth, newHeight } = await performanceDebugger.wrap(this._growAreaToFit, [ctxWidth, ctxHeight], this, "growAreaToFit");
+//       const { newWidth, newHeight } = await  performanceDebugger.wrap(this._growAreaToFit, [ctxWidth, ctxHeight], this, "growAreaToFit");
+      const { newWidth, newHeight } = await this._growAreaToFit(ctxWidth, ctxHeight);
       ctxWidth = newWidth;
       ctxHeight = newHeight;
     }
@@ -435,7 +450,8 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       this.centerY = ctxHeight / 2;
       this.hitBoxes = [];
 
-      placedAll = await performanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
+      placedAll = await this._writeAllWordsToSpiral();
+//       placedAll = await performanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
 
       if (!this.growToFit) {
         break;
@@ -563,14 +579,18 @@ async function createWidget(width, height) {
   let widget = new ListWidget();
   widget.setPadding(0,0,0,0);
 
-  const image = await new WordCloud(
+  
+  const wordCloud = new WordCloud(
     width,
     height,
     wordData,
     hackerWeightFunction,
     growToFit,
     debug
-  ).getImage();
+  );
+  const image = await performanceDebugger.wrap(wordCloud.getImage, [],  wordCloud);
+//    const image = await wordCloud.getImage();
+  
   const widgetImage = widget.addImage(image);
   widgetImage.applyFillingContentMode();
   widgetImage.centerAlignImage();
