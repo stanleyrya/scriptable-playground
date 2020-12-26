@@ -7,7 +7,7 @@
  */
 
 const growToFit = true;
-const debug = false;
+const debug = true;
 const minFont = 10;
 const maxFont = 60;
 const wordData = [  
@@ -33,6 +33,111 @@ const wordData = [
     { word: "Holly", weight: 1},
     { word: "Jolly", weight: 1}
 ];
+
+class PerformanceDebugger {
+
+	constructor() {
+		this.performanceResultsInMillis = {};
+	}
+
+	/**
+	 * Times a function's execution in milliseconds and stores the results in the performanceResultsInMillis object.
+	 *
+	 * Here are two examples on how to use it, one without parameters and one with:
+	 * let currLocation = await performanceWrapper(getCurrentLocation);
+	 * let wikiArticles = await performanceWrapper(getNearbyWikiArticles, [currLocation.latitude, currLocation.longitude]);
+	 *
+	 * Here's an example of what the performanceResultsInMillis would look like after those two function calls:
+	 * { "getCurrentLocation": 3200, "getNearbyWikiArticles": 312 }
+	 */
+	async wrap(fn, args, context, customName) {
+		const start = Date.now();
+		const result = await fn.apply(context, args);
+		const end = Date.now();
+        const name = customName || fn.name;
+		this.performanceResultsInMillis[name] = (end - start);
+		return result;
+	}
+
+	/**
+	 * Attempts to write the performanceResultsInMillis object to the relative file path.
+	 *
+	 * Example file output looks like this:
+	 * getCurrentLocation, getNearbyWikiArticles
+	 * 3200, 312
+	 * 450, 300
+	 */
+	appendPerformanceDataToFile(relativePath) {
+		const fm = this.getFileManager();
+		const metricsPath = this.getCurrentDir() + relativePath;
+
+		const splitRelativePath = relativePath.split("/");
+		if (splitRelativePath > 1) {
+			const fileName = splitRelativePath[splitRelativePath.length - 1];
+			const jsonDirectory = metricsPath.replace("/" + fileName, "");
+			fm.createDirectory(jsonDirectory, true);
+		}
+
+		if (fm.fileExists(metricsPath) && fm.isDirectory(metricsPath)) {
+			throw ("Performance file is a directory, please delete!");
+		}
+
+		let headersAvailable = Object.getOwnPropertyNames(this.performanceResultsInMillis);
+
+		let headers;
+		let fileData;
+
+		if (fm.fileExists(metricsPath)) {
+			console.log("File exists, reading headers. To keep things easy we're only going to write to these headers.");
+
+			// Doesn't fail with local filesystem
+			fm.downloadFileFromiCloud(metricsPath);
+
+			fileData = fm.readString(metricsPath);
+			const firstLine = this.getFirstLine(fileData);
+			headers = firstLine.split(',');
+		} else {
+			console.log("File doesn't exist, using available headers.");
+			headers = headersAvailable;
+			fileData = headers.toString();
+		}
+
+		// Append the data if it exists for the available headers
+		fileData = fileData.concat("\n");
+		for (const header of headers) {
+			if (this.performanceResultsInMillis[header]) {
+				fileData = fileData.concat(this.performanceResultsInMillis[header]);
+			}
+			fileData = fileData.concat(",");
+		}
+		fileData = fileData.slice(0, -1);
+
+		fm.writeString(metricsPath, fileData);
+	}
+
+	getFirstLine(text) {
+		var index = text.indexOf("\n");
+		if (index === -1) index = undefined;
+		return text.substring(0, index);
+	}
+
+	getFileManager() {
+		try {
+			return FileManager.iCloud();
+		} catch (e) {
+			return FileManager.local();
+		}
+	}
+
+	getCurrentDir() {
+		const fm = this.getFileManager();
+		const thisScriptPath = module.filename;
+		return thisScriptPath.replace(fm.fileName(thisScriptPath, true), '');
+	}
+
+}
+const performanceDebugger = new PerformanceDebugger();
+
 
 class WordCloudFont {
   /**
@@ -292,19 +397,34 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     return minArea;
   }
   
-  async getImage() {
-    let ctxWidth = this.providedWidth;
-    let ctxHeight = this.providedHeight;
-    if (this.growToFit) {
+  async _growAreaToFit(ctxWidth, ctxHeight) {
+      let newWidth = ctxWidth;
+      let newHeight = ctxHeight;
       let minArea = await this._getMinArea();
       while (minArea > (ctxWidth * ctxHeight)) {
         ctxWidth = ctxWidth + (ctxWidth * 0.1);
         ctxHeight = ctxHeight + (ctxHeight * 0.1);
         console.log("increasing because of min area");
       }
+      console.log(minArea)
+      console.log(ctxWidth * ctxHeight)
+      return {
+        newWidth: newWidth,
+        newHeight: newHeight
+      }
+  }
+  
+  async getImage() {
+    let ctxWidth = this.providedWidth;
+    let ctxHeight = this.providedHeight;
+    if (this.growToFit) {
+      const { newWidth, newHeight } = await performanceDebugger.wrap(this._growAreaToFit, [ctxWidth, ctxHeight], this, "growAreaToFit");
+      ctxWidth = newWidth;
+      ctxHeight = newHeight;
     }
 
     let placedAll = false;
+    let i = 0;
     while(!placedAll) {
       this.ctx = new DrawContext();
       this.ctx.opaque = false;
@@ -314,6 +434,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       this.hitBoxes = [];
 
       placedAll = await this._writeAllWordsToSpiral();
+      await performanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
 
       if (!this.growToFit) {
         break;
@@ -324,6 +445,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
         ctxHeight = ctxHeight + (this.providedHeight * 0.1);
         console.log("increasing because words couldn't fit area");
       }
+      i++;
     }
     
     if (this.debug) {
@@ -377,7 +499,7 @@ function hackerWeightFunction(text, weight) {
     wordCloudFont: new WordCloudFont(
       "CourierNewPS-BoldMT"
     ),
-    fontSize: minFont,
+    fontSize: maxFont,
     color: color
   }
 }
@@ -465,3 +587,5 @@ if (config.runsInWidget) {
   const widget = await createWidget(530, 530);
   await widget.presentLarge();
 }
+
+performanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance.csv");
