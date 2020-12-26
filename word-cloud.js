@@ -375,7 +375,9 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
   
   async _writeAllWordsToSpiral() {
     let placedAll = true;
+    console.log("writing all words to spiral")
     for (const wordDatum of this.wordData) {
+      console.log("printing " + wordDatum.word);
       if (!(await this._writeToSpiral(wordDatum.word, wordDatum.weight))) {
         placedAll = false;
         // Stop trying to place words if growToFit
@@ -433,8 +435,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       this.centerY = ctxHeight / 2;
       this.hitBoxes = [];
 
-      placedAll = await this._writeAllWordsToSpiral();
-      await performanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
+      placedAll = await performanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
 
       if (!this.growToFit) {
         break;
