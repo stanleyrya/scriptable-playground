@@ -398,12 +398,12 @@ class WordCloud {
           x, y, word, wordCloudFont, fontSize, color
         )) {
         this.placedWords.push({
-          x: x,
-          y: y,
+          xFromCenter: x - this.centerX,
+          yFromCenter: y - this.centerY,
           text: word,
           wordCloudFont: wordCloudFont,
           fontSize: fontSize,
-          color: color
+          color: color,
         });
         this.wordDataToPlace.shift();
         placed = true;
@@ -576,9 +576,11 @@ class WordCloud {
       this.hitBoxes = [];
       
       for (const placedWord of this.placedWords) {
+        let x = placedWord.xFromCenter + this.centerX;
+        let y = placedWord.yFromCenter + this.centerY;
         await this._addTextCentered(
-          placedWord.x,
-          placedWord.y,
+          x,
+          y,
           placedWord.text,
           placedWord.wordCloudFont,
           placedWord.fontSize,
