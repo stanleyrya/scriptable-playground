@@ -193,6 +193,9 @@ class WordCloud {
     this.webView = new WebView();
     this.loadedCssUrls = {};
     this.textDimensionsMap = {};
+    
+    this.wordDataToPlace = [...wordData];
+    this.placedWords = [];
 
     // Stretches the spiral
     const biggestSide = width > height ? width : height;
@@ -343,6 +346,7 @@ class WordCloud {
       return false;
     }
 
+    console.log("writing " + text);
     this.hitBoxes.push(rect);
 
     if (this.debug) {
@@ -393,6 +397,15 @@ class WordCloud {
       if (await this._addTextCentered(
           x, y, word, wordCloudFont, fontSize, color
         )) {
+        this.placedWords.push({
+          x: x,
+          y: y,
+          text: word,
+          wordCloudFont: wordCloudFont,
+          fontSize: fontSize,
+          color: color
+        });
+        this.wordDataToPlace.shift();
         placed = true;
         break;
       }
@@ -420,10 +433,12 @@ class WordCloud {
   }
 
   async _writeAllWordsToSpiral() {
-    let placedAll = true;
     console.log("writing all words to spiral")
-    for (const wordDatum of this.wordData) {
-      console.log("printing " + wordDatum.word);
+    let placedAll = true;
+    // this.wordDataToPlace is edited whenever a word is placed
+    // To be safe, copy it locally first and use the copy
+    const copiedWordDataToPlace = [...this.wordDataToPlace];
+    for (const wordDatum of copiedWordDataToPlace) {
       if (!(await this._writeToSpiral(wordDatum.word, wordDatum.weight))) {
         placedAll = false;
         // Stop trying to place words if growToFit
@@ -559,6 +574,17 @@ class WordCloud {
       this.centerX = ctxWidth / 2;
       this.centerY = ctxHeight / 2;
       this.hitBoxes = [];
+      
+      for (const placedWord of this.placedWords) {
+        await this._addTextCentered(
+          placedWord.x,
+          placedWord.y,
+          placedWord.text,
+          placedWord.wordCloudFont,
+          placedWord.fontSize,
+          placedWord.color
+        )
+      }
 
       placedAll = await deeperPerformanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
 
