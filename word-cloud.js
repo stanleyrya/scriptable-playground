@@ -452,6 +452,16 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     };
   }
 
+  /**
+   * All words that are more than half of the width can't be
+   * placed next to each other. This means they have to be stacked
+   * and their combined height needs to be at least as long as
+   * the draw context. The same can be said about words that are
+   * larger than half of the height.
+   *
+   * Unlike the _getWordStats() function, this function will return
+   * a different result depending on the current width and height.
+   */
   async _getStackedMinDimensions(newWidth, newHeight) {
     console.log("getting stacked")
     let stackedMinHeight = 0;
@@ -476,14 +486,19 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     };
   }
 
+  /**
+   * Before words are placed on the spiral it's possible to grow the
+   * DrawContext using information we know about the words. This is
+   * faster than placing all of the words on the sprial and iterating
+   * so it's preferred to run this function first.
+   */
   async _preflightGrow(ctxWidth, ctxHeight) {
     let newWidth = ctxWidth;
     let newHeight = ctxHeight;
     const { minWidth, minHeight, minArea } = await this._getWordStats();
 
     // The biggest height and width of the words have to fit the DrawContext
-    while (minWidth > newWidth ||
-      minHeight > newHeight) {
+    while (minWidth > newWidth || minHeight > newHeight) {
       newWidth = newWidth + (newWidth * 0.1);
       newHeight = newHeight + (newHeight * 0.1);
       console.log("increasing because of min width or height");
@@ -496,12 +511,11 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       console.log("increasing because of min area");
     }
 
-    console.log("height:" + newHeight);
-
-    // All words that are more than half of the width(/height) can't be
-    // placed next(/above) each other. This means they have to be stacked
-    // and their combined height(/width) needs to be at least as long as
-    // the draw context.
+    // All words that are more than half of the width can't be
+    // placed next to each other. This means they have to be stacked
+    // and their combined height needs to be at least as long as
+    // the draw context. The same can be said about words that are
+    // larger than half of the height.
     let { stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(newWidth, newHeight);
     while (stackedMinWidth > newWidth || stackedMinHeight > newHeight) {
       newWidth = newWidth + (newWidth * 0.1);
@@ -511,8 +525,8 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     }
 
     return {
-      newWidth: newWidth,
-      newHeight: newHeight
+      ctxWidth: newWidth,
+      ctxHeight: newHeight
     }
   }
 
@@ -520,7 +534,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     let ctxWidth = this.providedWidth;
     let ctxHeight = this.providedHeight;
     if (this.growToFit) {
-      ({ newWidth, newHeight } = await deeperPerformanceDebugger.wrap(this._preflightGrow, [ctxWidth, ctxHeight], this));
+      ({ ctxWidth, ctxHeight } = await deeperPerformanceDebugger.wrap(this._preflightGrow, [ctxWidth, ctxHeight], this));
     }
     console.log("ctxHeight:" + ctxHeight);
     console.log("ctxWidth:" + ctxWidth);
@@ -535,7 +549,6 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       this.centerY = ctxHeight / 2;
       this.hitBoxes = [];
 
-      placedAll = await this._writeAllWordsToSpiral();
       placedAll = await deeperPerformanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
 
       if (!this.growToFit) {
