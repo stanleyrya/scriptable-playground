@@ -193,7 +193,7 @@ class WordCloud {
     this.webView = new WebView();
     this.loadedCssUrls = {};
     this.textDimensionsMap = {};
-    
+
     this.wordDataToPlace = [...wordData];
     this.placedWords = [];
 
@@ -574,13 +574,11 @@ class WordCloud {
       this.centerX = ctxWidth / 2;
       this.centerY = ctxHeight / 2;
       this.hitBoxes = [];
-      
+
       for (const placedWord of this.placedWords) {
-        let x = placedWord.xFromCenter + this.centerX;
-        let y = placedWord.yFromCenter + this.centerY;
         await this._addTextCentered(
-          x,
-          y,
+          placedWord.xFromCenter + this.centerX,
+          placedWord.yFromCenter + this.centerY,
           placedWord.text,
           placedWord.wordCloudFont,
           placedWord.fontSize,
