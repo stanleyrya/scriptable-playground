@@ -473,7 +473,7 @@ class WordCloud {
    * Unlike the _getWordStats() function, this function will return
    * a different result depending on the current width and height.
    */
-  async _getStackedMinDimensions(newWidth, newHeight) {
+  async _getStackedMinDimensions(ctxWidth, ctxHeight) {
     console.log("getting stacked")
     let stackedMinHeight = 0;
     let stackedMinWidth = 0;
