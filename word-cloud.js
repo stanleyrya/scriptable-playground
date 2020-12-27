@@ -10,30 +10,30 @@ const growToFit = true;
 const debug = false;
 const minFont = 10;
 const maxFont = 60;
-const wordData = [  
-    { word: "Christmas", weight: 10 },
-    { word: "Snow", weight: 10 },
-    { word: "Sleigh", weight: 8 },
-    { word: "Santa", weight: 7 },
-    { word: "Presents", weight: 7},
-    { word: "Candy Canes", weight: 7 },
-    { word: "Advent", weight: 6},
-    { word: "Carol", weight: 6},
-    { word: "Chimney", weight: 5},
-    { word: "Dreidel", weight: 5},
-    { word: "Druid", weight: 3},
-    { word: "Eggnog", weight: 3},
-    { word: "Elves", weight: 3},
-    { word: "Epiphany", weight: 3},
-    { word: "Feliz Navidad", weight: 3},
-    { word: "Frankincense", weight: 2},
-    { word: "Gingerbread", weight: 2},
-    { word: "Grinch", weight: 2},
-    { word: "Hanukkah", weight: 1},
-    { word: "Holly", weight: 1},
-    { word: "Jolly", weight: 1}
+const wordData = [
+  { word: "Christmas", weight: 10 },
+  { word: "Snow", weight: 10 },
+  { word: "Sleigh", weight: 8 },
+  { word: "Santa", weight: 7 },
+  { word: "Presents", weight: 7 },
+  { word: "Candy Canes", weight: 7 },
+  { word: "Advent", weight: 6 },
+  { word: "Carol", weight: 6 },
+  { word: "Chimney", weight: 5 },
+  { word: "Dreidel", weight: 5 },
+  { word: "Druid", weight: 3 },
+  { word: "Eggnog", weight: 3 },
+  { word: "Elves", weight: 3 },
+  { word: "Epiphany", weight: 3 },
+  { word: "Feliz Navidad", weight: 3 },
+  { word: "Frankincense", weight: 2 },
+  { word: "Gingerbread", weight: 2 },
+  { word: "Grinch", weight: 2 },
+  { word: "Hanukkah", weight: 1 },
+  { word: "Holly", weight: 1 },
+  { word: "Jolly", weight: 1 }
 ];
-// const wordData = [  
+// const wordData = [
 //     { word: "Christmas Chr", weight: 10 },
 //     { word: "Christmas Chr", weight: 10 },
 //     { word: "Christmas Chr", weight: 8 },
@@ -56,104 +56,104 @@ const wordData = [
 
 class PerformanceDebugger {
 
-	constructor() {
-		this.performanceResultsInMillis = {};
-	}
+  constructor() {
+    this.performanceResultsInMillis = {};
+  }
 
-	/**
-	 * Times a function's execution in milliseconds and stores the results in the performanceResultsInMillis object.
-	 *
-	 * Here are two examples on how to use it, one without parameters and one with:
-	 * let currLocation = await performanceWrapper(getCurrentLocation);
-	 * let wikiArticles = await performanceWrapper(getNearbyWikiArticles, [currLocation.latitude, currLocation.longitude]);
-	 *
-	 * Here's an example of what the performanceResultsInMillis would look like after those two function calls:
-	 * { "getCurrentLocation": 3200, "getNearbyWikiArticles": 312 }
-	 */
-	async wrap(fn, args, context, customName) {
-		const start = Date.now();
-		const result = await fn.apply(context, args);
-		const end = Date.now();
-        const name = customName || fn.name;
-		this.performanceResultsInMillis[name] = (end - start);
-		return result;
-	}
+  /**
+   * Times a function's execution in milliseconds and stores the results in the performanceResultsInMillis object.
+   *
+   * Here are two examples on how to use it, one without parameters and one with:
+   * let currLocation = await performanceWrapper(getCurrentLocation);
+   * let wikiArticles = await performanceWrapper(getNearbyWikiArticles, [currLocation.latitude, currLocation.longitude]);
+   *
+   * Here's an example of what the performanceResultsInMillis would look like after those two function calls:
+   * { "getCurrentLocation": 3200, "getNearbyWikiArticles": 312 }
+   */
+  async wrap(fn, args, context, customName) {
+    const start = Date.now();
+    const result = await fn.apply(context, args);
+    const end = Date.now();
+    const name = customName || fn.name;
+    this.performanceResultsInMillis[name] = (end - start);
+    return result;
+  }
 
-	/**
-	 * Attempts to write the performanceResultsInMillis object to the relative file path.
-	 *
-	 * Example file output looks like this:
-	 * getCurrentLocation, getNearbyWikiArticles
-	 * 3200, 312
-	 * 450, 300
-	 */
-	appendPerformanceDataToFile(relativePath) {
-		const fm = this.getFileManager();
-		const metricsPath = this.getCurrentDir() + relativePath;
+  /**
+   * Attempts to write the performanceResultsInMillis object to the relative file path.
+   *
+   * Example file output looks like this:
+   * getCurrentLocation, getNearbyWikiArticles
+   * 3200, 312
+   * 450, 300
+   */
+  appendPerformanceDataToFile(relativePath) {
+    const fm = this.getFileManager();
+    const metricsPath = this.getCurrentDir() + relativePath;
 
-		const splitRelativePath = relativePath.split("/");
-		if (splitRelativePath > 1) {
-			const fileName = splitRelativePath[splitRelativePath.length - 1];
-			const jsonDirectory = metricsPath.replace("/" + fileName, "");
-			fm.createDirectory(jsonDirectory, true);
-		}
+    const splitRelativePath = relativePath.split("/");
+    if (splitRelativePath > 1) {
+      const fileName = splitRelativePath[splitRelativePath.length - 1];
+      const jsonDirectory = metricsPath.replace("/" + fileName, "");
+      fm.createDirectory(jsonDirectory, true);
+    }
 
-		if (fm.fileExists(metricsPath) && fm.isDirectory(metricsPath)) {
-			throw ("Performance file is a directory, please delete!");
-		}
+    if (fm.fileExists(metricsPath) && fm.isDirectory(metricsPath)) {
+      throw ("Performance file is a directory, please delete!");
+    }
 
-		let headersAvailable = Object.getOwnPropertyNames(this.performanceResultsInMillis);
+    let headersAvailable = Object.getOwnPropertyNames(this.performanceResultsInMillis);
 
-		let headers;
-		let fileData;
+    let headers;
+    let fileData;
 
-		if (fm.fileExists(metricsPath)) {
-			console.log("File exists, reading headers. To keep things easy we're only going to write to these headers.");
+    if (fm.fileExists(metricsPath)) {
+      console.log("File exists, reading headers. To keep things easy we're only going to write to these headers.");
 
-			// Doesn't fail with local filesystem
-			fm.downloadFileFromiCloud(metricsPath);
+      // Doesn't fail with local filesystem
+      fm.downloadFileFromiCloud(metricsPath);
 
-			fileData = fm.readString(metricsPath);
-			const firstLine = this.getFirstLine(fileData);
-			headers = firstLine.split(',');
-		} else {
-			console.log("File doesn't exist, using available headers.");
-			headers = headersAvailable;
-			fileData = headers.toString();
-		}
+      fileData = fm.readString(metricsPath);
+      const firstLine = this.getFirstLine(fileData);
+      headers = firstLine.split(',');
+    } else {
+      console.log("File doesn't exist, using available headers.");
+      headers = headersAvailable;
+      fileData = headers.toString();
+    }
 
-		// Append the data if it exists for the available headers
-		fileData = fileData.concat("\n");
-		for (const header of headers) {
-			if (this.performanceResultsInMillis[header]) {
-				fileData = fileData.concat(this.performanceResultsInMillis[header]);
-			}
-			fileData = fileData.concat(",");
-		}
-		fileData = fileData.slice(0, -1);
+    // Append the data if it exists for the available headers
+    fileData = fileData.concat("\n");
+    for (const header of headers) {
+      if (this.performanceResultsInMillis[header]) {
+        fileData = fileData.concat(this.performanceResultsInMillis[header]);
+      }
+      fileData = fileData.concat(",");
+    }
+    fileData = fileData.slice(0, -1);
 
-		fm.writeString(metricsPath, fileData);
-	}
+    fm.writeString(metricsPath, fileData);
+  }
 
-	getFirstLine(text) {
-		var index = text.indexOf("\n");
-		if (index === -1) index = undefined;
-		return text.substring(0, index);
-	}
+  getFirstLine(text) {
+    var index = text.indexOf("\n");
+    if (index === -1) index = undefined;
+    return text.substring(0, index);
+  }
 
-	getFileManager() {
-		try {
-			return FileManager.iCloud();
-		} catch (e) {
-			return FileManager.local();
-		}
-	}
+  getFileManager() {
+    try {
+      return FileManager.iCloud();
+    } catch (e) {
+      return FileManager.local();
+    }
+  }
 
-	getCurrentDir() {
-		const fm = this.getFileManager();
-		const thisScriptPath = module.filename;
-		return thisScriptPath.replace(fm.fileName(thisScriptPath, true), '');
-	}
+  getCurrentDir() {
+    const fm = this.getFileManager();
+    const thisScriptPath = module.filename;
+    return thisScriptPath.replace(fm.fileName(thisScriptPath, true), '');
+  }
 
 }
 const performanceDebugger = new PerformanceDebugger();
@@ -193,7 +193,7 @@ class WordCloud {
     this.webView = new WebView();
     this.loadedCssUrls = {};
     this.textDimensionsMap = {};
-    
+
     // Stretches the spiral
     const biggestSide = width > height ? width : height;
     this.xRatio = width / biggestSide;
@@ -217,17 +217,17 @@ class WordCloud {
 // Load the font so its available in the canvas
 <div style="font-family: REPLACE_FONT_FAMILY;">.</div>
 `.replace("REPLACE_HREF", fontCssUrl)
-.replace("REPLACE_FONT_FAMILY", fontFamily);
+      .replace("REPLACE_FONT_FAMILY", fontFamily);
   }
 
   _getTextDimensionJavascript(text, cssFont) {
     return `
 /**
  * Uses canvas.measureText to compute and return the dimensions of the given text of given font in pixels.
- * 
+ *
  * @param {String} text The text to be rendered.
  * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
- * 
+ *
  * @see Inspired from: https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
  */
 function getTextDimensions(text, font) {
@@ -244,7 +244,7 @@ function getTextDimensions(text, font) {
 
 getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
 `.replace("REPLACE_TEXT", text)
-.replace("REPLACE_FONT", cssFont);
+      .replace("REPLACE_FONT", cssFont);
   }
 
   async _getTextDimensions(text, wordCloudFont, fontSize) {
@@ -254,7 +254,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       return this.textDimensionsMap[key];
     } else {
       if (wordCloudFont.cssURL) {
-        if (!this.loadedCssUrls[wordCloudFont.cssURL]){ 
+        if (!this.loadedCssUrls[wordCloudFont.cssURL]) {
           await this.webView.loadHTML(this._getAddFontHTML(wordCloudFont.fontName, wordCloudFont.cssURL));
           this.loadedCssUrls[wordCloudFont.cssURL] = true;
         }
@@ -267,18 +267,18 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       return value;
     }
   }
-  
+
   // https://stackoverflow.com/a/306332
   // if (RectA.Left < RectB.Right &&
   //     RectA.Right > RectB.Left &&
   //     RectA.Top < RectB.Bottom &&
-  //     RectA.Bottom > RectB.Top) 
+  //     RectA.Bottom > RectB.Top)
   _checkCollision(newRect) {
     for (const placedRect of this.hitBoxes) {
       if (newRect.minX < placedRect.maxX + this.bufferRoom &&
-          newRect.maxX > placedRect.minX - this.bufferRoom &&
-          newRect.minY < placedRect.maxY + this.bufferRoom &&
-          newRect.maxY > placedRect.minY - this.bufferRoom) {
+        newRect.maxX > placedRect.minX - this.bufferRoom &&
+        newRect.minY < placedRect.maxY + this.bufferRoom &&
+        newRect.maxY > placedRect.minY - this.bufferRoom) {
         return true;
       }
     }
@@ -287,26 +287,26 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
 
   _checkOutsideBorders(newRect) {
     if (newRect.minX < 0 + this.bufferRoom ||
-        newRect.maxX > this.ctx.size.width - this.bufferRoom ||
-        newRect.minY < 0 + this.bufferRoom ||
-        newRect.maxY > this.ctx.size.height - this.bufferRoom) {
+      newRect.maxX > this.ctx.size.width - this.bufferRoom ||
+      newRect.minY < 0 + this.bufferRoom ||
+      newRect.maxY > this.ctx.size.height - this.bufferRoom) {
       return true;
     }
     return false;
   }
-  
+
   _checkInside(x, y) {
     for (const placedRect of this.hitBoxes) {
       if (x < placedRect.maxX + this.bufferRoom &&
-          x > placedRect.minX - this.bufferRoom &&
-          y < placedRect.maxY + this.bufferRoom &&
-          y > placedRect.minY - this.bufferRoom) {
+        x > placedRect.minX - this.bufferRoom &&
+        y < placedRect.maxY + this.bufferRoom &&
+        y > placedRect.minY - this.bufferRoom) {
         return true;
       }
     }
     return false;
   }
-  
+
   async _addTextCentered(x, y, text, wordCloudFont, fontSize, color) {
     const dimensions = await this._getTextDimensions(text, wordCloudFont, fontSize);
     const topLeftX = x - (dimensions.width / 2);
@@ -319,7 +319,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     );
 
     if (this._checkCollision(rect) ||
-        this._checkOutsideBorders(rect)) {
+      this._checkOutsideBorders(rect)) {
       return false;
     }
 
@@ -343,7 +343,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     );
     return true;
   }
-  
+
   _getRandomDirection() {
     return Math.random() < 0.5 ? -1 : 1;
   }
@@ -357,46 +357,46 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     let angle = 0;
     let radiusDirection = this._getRandomDirection();
     let angleDirection = this._getRandomDirection();
-    
+
     const path = new Path();
     path.move(new Point(this.centerX, this.centerY));
-    
-    let placed = false;
-    while (!(breachedLeft
-           && breachedRight
-           && breachedTop
-           && breachedBottom)) {
-        radius += this.radiusIncrement * angleDirection;
-        angle += (Math.PI * 2) / this.partsPerCircle * radiusDirection;
-        let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
-        let y = this.centerY + radius * Math.sin(angle) * this.yRatio;
-        if (this.debug) {
-          path.addLine(new Point(x, y));
-        }
-        if (this._checkInside(x, y)) {
-          continue;
-        }
 
-        const { wordCloudFont, fontSize, color } = this.weightFunction(word, weight);
-        if (await this._addTextCentered(
+    let placed = false;
+    while (!(breachedLeft &&
+        breachedRight &&
+        breachedTop &&
+        breachedBottom)) {
+      radius += this.radiusIncrement * angleDirection;
+      angle += (Math.PI * 2) / this.partsPerCircle * radiusDirection;
+      let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
+      let y = this.centerY + radius * Math.sin(angle) * this.yRatio;
+      if (this.debug) {
+        path.addLine(new Point(x, y));
+      }
+      if (this._checkInside(x, y)) {
+        continue;
+      }
+
+      const { wordCloudFont, fontSize, color } = this.weightFunction(word, weight);
+      if (await this._addTextCentered(
           x, y, word, wordCloudFont, fontSize, color
         )) {
-          placed = true;
-          break;
-        }
+        placed = true;
+        break;
+      }
 
-        if (x < 0) {
-          breachedLeft = true;
-        }
-        if (x > this.ctx.size.width) {
-          breachedRight = true;
-        }
-        if (y < 0) {
-          breachedTop = true;
-        }
-        if (y > this.ctx.size.height) {
-          breachedBottom = true;
-        }
+      if (x < 0) {
+        breachedLeft = true;
+      }
+      if (x > this.ctx.size.width) {
+        breachedRight = true;
+      }
+      if (y < 0) {
+        breachedTop = true;
+      }
+      if (y > this.ctx.size.height) {
+        breachedBottom = true;
+      }
     }
     if (this.debug) {
       this.ctx.setLineWidth(.1);
@@ -406,7 +406,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     }
     return placed;
   }
-  
+
   async _writeAllWordsToSpiral() {
     let placedAll = true;
     console.log("writing all words to spiral")
@@ -422,7 +422,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     }
     return placedAll;
   }
-  
+
   async _getWordStats() {
     let minWidth = 0;
     let minHeight = 0;
@@ -430,7 +430,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     for (const wordDatum of this.wordData) {
       const { wordCloudFont, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
       const dimensions = await this._getTextDimensions(wordDatum.word, wordCloudFont, fontSize);
-      
+
       if (minWidth < dimensions.width) {
         minWidth = dimensions.width;
       }
@@ -453,7 +453,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     for (const wordDatum of this.wordData) {
       const { wordCloudFont, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
       const dimensions = await this._getTextDimensions(wordDatum.word, wordCloudFont, fontSize);
-      
+
       if (dimensions.width > ctxWidth / 2) {
         console.log("bigger than half")
         stackedMinHeight += dimensions.height;
@@ -462,49 +462,49 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     console.log(stackedMinHeight);
     return stackedMinHeight;
   }
-  
+
   async _preflightGrow(ctxWidth, ctxHeight) {
-      let newWidth = ctxWidth;
-      let newHeight = ctxHeight;
-       const { minWidth, minHeight, minArea } = await this._getWordStats();
+    let newWidth = ctxWidth;
+    let newHeight = ctxHeight;
+    const { minWidth, minHeight, minArea } = await this._getWordStats();
 
-      // The biggest height and width of the words have to fit the DrawContext
-      while (minWidth > newWidth ||
-             minHeight > newHeight) {
-        newWidth = newWidth + (newWidth * 0.1);
-        newHeight = newHeight + (newHeight * 0.1);
-        console.log("increasing because of min width or height");
-      }
+    // The biggest height and width of the words have to fit the DrawContext
+    while (minWidth > newWidth ||
+      minHeight > newHeight) {
+      newWidth = newWidth + (newWidth * 0.1);
+      newHeight = newHeight + (newHeight * 0.1);
+      console.log("increasing because of min width or height");
+    }
 
-      // The area of the words have to fit the area of the drawContext
-      while (minArea > (newWidth * newHeight)) {
-        newWidth = newWidth + (newWidth * 0.1);
-        newHeight = newHeight + (newHeight * 0.1);
-        console.log("increasing because of min area");
-      }
-      
-      console.log("height:" + newHeight);
-      
-      // The biggest height and width of the words have to fit the DrawContext
-      let stackedMinHeight = await this._getStackedMinHeight(newWidth);
-      while (stackedMinHeight > newHeight) {
-        newWidth = newWidth + (newWidth * 0.1);
-        newHeight = newHeight + (newHeight * 0.1);
-        console.log("increasing because of stacked height");
-        stackedMinHeight = await this._getStackedMinHeight(newWidth);
-      }
+    // The area of the words have to fit the area of the drawContext
+    while (minArea > (newWidth * newHeight)) {
+      newWidth = newWidth + (newWidth * 0.1);
+      newHeight = newHeight + (newHeight * 0.1);
+      console.log("increasing because of min area");
+    }
 
-      return {
-        newWidth: newWidth,
-        newHeight: newHeight
-      }
+    console.log("height:" + newHeight);
+
+    // The biggest height and width of the words have to fit the DrawContext
+    let stackedMinHeight = await this._getStackedMinHeight(newWidth);
+    while (stackedMinHeight > newHeight) {
+      newWidth = newWidth + (newWidth * 0.1);
+      newHeight = newHeight + (newHeight * 0.1);
+      console.log("increasing because of stacked height");
+      stackedMinHeight = await this._getStackedMinHeight(newWidth);
+    }
+
+    return {
+      newWidth: newWidth,
+      newHeight: newHeight
+    }
   }
-  
+
   async getImage() {
     let ctxWidth = this.providedWidth;
     let ctxHeight = this.providedHeight;
     if (this.growToFit) {
-//       const { newWidth, newHeight } = await  performanceDebugger.wrap(this._preflightGrow, [ctxWidth, ctxHeight], this, "growAreaToFit");
+      //       const { newWidth, newHeight } = await  performanceDebugger.wrap(this._preflightGrow, [ctxWidth, ctxHeight], this, "growAreaToFit");
       const { newWidth, newHeight } = await this._preflightGrow(ctxWidth, ctxHeight);
       console.log(newWidth, newHeight);
       ctxWidth = newWidth;
@@ -515,7 +515,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
 
     let placedAll = false;
     let i = 0;
-    while(!placedAll) {
+    while (!placedAll) {
       this.ctx = new DrawContext();
       this.ctx.opaque = false;
       this.ctx.size = new Size(ctxWidth, ctxHeight);
@@ -529,7 +529,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       if (!this.growToFit) {
         break;
       }
-      
+
       if (!placedAll) {
         ctxWidth = ctxWidth + (this.providedWidth * 0.1);
         ctxHeight = ctxHeight + (this.providedHeight * 0.1);
@@ -537,7 +537,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       }
       i++;
     }
-    
+
     if (this.debug) {
       this.ctx.setLineWidth(5);
       this.ctx.setStrokeColor(Color.red());
@@ -650,9 +650,9 @@ function stencilWeightFunction(text, weight) {
 
 async function createWidget(width, height) {
   let widget = new ListWidget();
-  widget.setPadding(0,0,0,0);
+  widget.setPadding(0, 0, 0, 0);
 
-  
+
   const wordCloud = new WordCloud(
     width,
     height,
@@ -661,9 +661,9 @@ async function createWidget(width, height) {
     growToFit,
     debug
   );
-  const image = await performanceDebugger.wrap(wordCloud.getImage, [],  wordCloud);
-//   const image = await wordCloud.getImage();
-  
+  const image = await performanceDebugger.wrap(wordCloud.getImage, [], wordCloud);
+  //   const image = await wordCloud.getImage();
+
   const widgetImage = widget.addImage(image);
   widgetImage.applyFillingContentMode();
   widgetImage.centerAlignImage();
