@@ -181,7 +181,6 @@ class WordCloudFont {
 }
 
 class WordCloud {
-  // Started with LineChart by https://kevinkub.de/
 
   constructor(width, height, wordData, weightFunction, growToFit, debug) {
     this.providedWidth = width;
@@ -207,63 +206,84 @@ class WordCloud {
     this.bufferRoom = 10;
   }
 
-  _getAddFontHTML(fontFamily, fontCssUrl) {
-    return `
-// Preconnecting could decrease load time
-// https://www.cdnplanet.com/blog/faster-google-webfonts-preconnect/
-<link rel="preconnect" href="https://fonts.gstatic.com">
+  /**
+   * Uses Scriptable's WebView to load a custom font.
+   *
+   * @param {String} fontFamily The font family being loaded.
+   * @param {String} fontCssUrl The css url that will be loaded.
+   */
+  _loadFontToWebView(fontFamily, fontCssUrl) {
+    const html = `
+      // Preconnecting could decrease load time if using a Google font
+      // https://www.cdnplanet.com/blog/faster-google-webfonts-preconnect/
+      <link rel="preconnect" href="https://fonts.gstatic.com">
 
-<link href="REPLACE_HREF" rel="stylesheet">
+      <link href="REPLACE_HREF" rel="stylesheet">
 
-// Load the font so its available in the canvas
-<div style="font-family: REPLACE_FONT_FAMILY;">.</div>
-`.replace("REPLACE_HREF", fontCssUrl)
+      // Load the font so its available in the canvas
+      <div style="font-family: REPLACE_FONT_FAMILY;">.</div>
+`
+      .replace("REPLACE_HREF", fontCssUrl)
       .replace("REPLACE_FONT_FAMILY", fontFamily);
+
+    return this.webView.loadHTML(html);
   }
 
-  _getTextDimensionJavascript(text, cssFont) {
-    return `
-/**
- * Uses canvas.measureText to compute and return the dimensions of the given text of given font in pixels.
- *
- * @param {String} text The text to be rendered.
- * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
- *
- * @see Inspired from: https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
- */
-function getTextDimensions(text, font) {
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-    context.font = font;
-    const metrics = context.measureText(text);
-    return {
-        // I'm not sure why yet but 3/4 is perfect for Scriptable's DrawContext
-        width: metrics.width * 3/4,
-        height: (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) * 3/4
-    };
-}
+  /**
+   * Uses Scriptable's WebView to call canvas.measureText on the given text of given font in pixels.
+   *
+   * @param {String} text The text to be rendered.
+   * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
+   *
+   * @see Inspired from: https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
+   */
+  _getTextDimensionsUsingWebView(text, cssFont) {
+    const javascript = `
+      function getTextDimensions(text, font) {
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          context.font = font;
+          const metrics = context.measureText(text);
+          return {
+              // I'm not sure why yet but 3/4 is perfect for Scriptable's DrawContext
+              width: metrics.width * 3/4,
+              height: (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) * 3/4
+          };
+      }
 
-getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
-`.replace("REPLACE_TEXT", text)
+      getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
+`
+      .replace("REPLACE_TEXT", text)
       .replace("REPLACE_FONT", cssFont);
+
+    return this.webView.evaluateJavaScript(javascript);
   }
 
+  /**
+   * The Scriptable WebView can use the HTML document canvas to measure a word's
+   * width and height. It can't return an image file so the rest of the script
+   * uses the Scriptable DrawContext to create the image.
+   *
+   * Custom fonts aren't loaded on the HTML document canvas so they have to be
+   * loaded using their css stylesheet.
+   */
   async _getTextDimensions(text, wordCloudFont, fontSize) {
     const cssFont = fontSize + "pt " + wordCloudFont.fontName;
     const key = text + " " + cssFont;
+
     if (this.textDimensionsMap[key]) {
       return this.textDimensionsMap[key];
     } else {
+      // If we are using a custom font and it hasn't been loaded before,
+      // load it to the WebView.
       if (wordCloudFont.cssURL) {
         if (!this.loadedCssUrls[wordCloudFont.cssURL]) {
-          await this.webView.loadHTML(this._getAddFontHTML(wordCloudFont.fontName, wordCloudFont.cssURL));
+          await this._loadFontToWebView(wordCloudFont.fontName, wordCloudFont.cssURL);
           this.loadedCssUrls[wordCloudFont.cssURL] = true;
         }
       }
 
-      const value = await this.webView.evaluateJavaScript(
-        this._getTextDimensionJavascript(text, cssFont)
-      );
+      const value = await this._getTextDimensionsUsingWebView(text, cssFont);
       this.textDimensionsMap[key] = value;
       return value;
     }
@@ -274,7 +294,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
   //     RectA.Right > RectB.Left &&
   //     RectA.Top < RectB.Bottom &&
   //     RectA.Bottom > RectB.Top)
-  _checkCollision(newRect) {
+  _checkRectCollision(newRect) {
     for (const placedRect of this.hitBoxes) {
       if (newRect.minX < placedRect.maxX + this.bufferRoom &&
         newRect.maxX > placedRect.minX - this.bufferRoom &&
@@ -286,7 +306,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     return false;
   }
 
-  _checkOutsideBorders(newRect) {
+  _checkRectOutsideBorders(newRect) {
     if (newRect.minX < 0 + this.bufferRoom ||
       newRect.maxX > this.ctx.size.width - this.bufferRoom ||
       newRect.minY < 0 + this.bufferRoom ||
@@ -296,7 +316,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     return false;
   }
 
-  _checkInside(x, y) {
+  _checkPointCollision(x, y) {
     for (const placedRect of this.hitBoxes) {
       if (x < placedRect.maxX + this.bufferRoom &&
         x > placedRect.minX - this.bufferRoom &&
@@ -319,8 +339,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       dimensions.height
     );
 
-    if (this._checkCollision(rect) ||
-      this._checkOutsideBorders(rect)) {
+    if (this._checkRectCollision(rect) || this._checkRectOutsideBorders(rect)) {
       return false;
     }
 
@@ -335,13 +354,8 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     // I'm not sure why, but the text is a quarter off from the box.
     const quarterHeight = dimensions.height / 4;
     this.ctx.setTextColor(color);
-    this.ctx.setFont(
-      new Font(wordCloudFont.fontName, fontSize)
-    );
-    this.ctx.drawText(
-      text,
-      new Point(topLeftX, topLeftY - quarterHeight)
-    );
+    this.ctx.setFont(new Font(wordCloudFont.fontName, fontSize));
+    this.ctx.drawText(text, new Point(topLeftX, topLeftY - quarterHeight));
     return true;
   }
 
@@ -363,10 +377,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     path.move(new Point(this.centerX, this.centerY));
 
     let placed = false;
-    while (!(breachedLeft &&
-        breachedRight &&
-        breachedTop &&
-        breachedBottom)) {
+    while (!(breachedLeft && breachedRight && breachedTop && breachedBottom)) {
       radius += this.radiusIncrement * angleDirection;
       angle += (Math.PI * 2) / this.partsPerCircle * radiusDirection;
       let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
@@ -374,7 +385,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       if (this.debug) {
         path.addLine(new Point(x, y));
       }
-      if (this._checkInside(x, y)) {
+      if (this._checkPointCollision(x, y)) {
         continue;
       }
 
