@@ -156,7 +156,8 @@ class PerformanceDebugger {
   }
 
 }
-const performanceDebugger = new PerformanceDebugger();
+const overallPerformanceDebugger = new PerformanceDebugger();
+const deeperPerformanceDebugger = new PerformanceDebugger();
 
 
 class WordCloudFont {
@@ -423,6 +424,10 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     return placedAll;
   }
 
+  /**
+   * Returns some statistics about the words provided so the DrawContext
+   * can be adjusted to fit them.
+   */
   async _getWordStats() {
     let minWidth = 0;
     let minHeight = 0;
@@ -447,20 +452,28 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     };
   }
 
-  async _getStackedMinHeight(ctxWidth) {
+  async _getStackedMinDimensions(newWidth, newHeight) {
     console.log("getting stacked")
     let stackedMinHeight = 0;
+    let stackedMinWidth = 0;
     for (const wordDatum of this.wordData) {
       const { wordCloudFont, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
       const dimensions = await this._getTextDimensions(wordDatum.word, wordCloudFont, fontSize);
 
       if (dimensions.width > ctxWidth / 2) {
-        console.log("bigger than half")
+        console.log("width bigger than half")
         stackedMinHeight += dimensions.height;
       }
+      if (dimensions.height > ctxHeight / 2) {
+        console.log("height bigger than half")
+        stackedMinWidth += dimensions.width;
+      }
     }
-    console.log(stackedMinHeight);
-    return stackedMinHeight;
+    console.log("stacked min width: " + stackedMinWidth + " stacked min height: " + stackedMinHeight);
+    return {
+      stackedMinWidth: stackedMinWidth,
+      stackedMinHeight: stackedMinHeight
+    };
   }
 
   async _preflightGrow(ctxWidth, ctxHeight) {
@@ -485,13 +498,16 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
 
     console.log("height:" + newHeight);
 
-    // The biggest height and width of the words have to fit the DrawContext
-    let stackedMinHeight = await this._getStackedMinHeight(newWidth);
-    while (stackedMinHeight > newHeight) {
+    // All words that are more than half of the width(/height) can't be
+    // placed next(/above) each other. This means they have to be stacked
+    // and their combined height(/width) needs to be at least as long as
+    // the draw context.
+    let { stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(newWidth, newHeight);
+    while (stackedMinWidth > newWidth || stackedMinHeight > newHeight) {
       newWidth = newWidth + (newWidth * 0.1);
       newHeight = newHeight + (newHeight * 0.1);
-      console.log("increasing because of stacked height");
-      stackedMinHeight = await this._getStackedMinHeight(newWidth);
+      console.log("increasing because of stacked width or height");
+      ({ stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(newWidth, newHeight));
     }
 
     return {
@@ -504,11 +520,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
     let ctxWidth = this.providedWidth;
     let ctxHeight = this.providedHeight;
     if (this.growToFit) {
-      //       const { newWidth, newHeight } = await  performanceDebugger.wrap(this._preflightGrow, [ctxWidth, ctxHeight], this, "growAreaToFit");
-      const { newWidth, newHeight } = await this._preflightGrow(ctxWidth, ctxHeight);
-      console.log(newWidth, newHeight);
-      ctxWidth = newWidth;
-      ctxHeight = newHeight;
+      ({ newWidth, newHeight } = await deeperPerformanceDebugger.wrap(this._preflightGrow, [ctxWidth, ctxHeight], this));
     }
     console.log("ctxHeight:" + ctxHeight);
     console.log("ctxWidth:" + ctxWidth);
@@ -524,7 +536,7 @@ getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
       this.hitBoxes = [];
 
       placedAll = await this._writeAllWordsToSpiral();
-      placedAll = await performanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
+      placedAll = await deeperPerformanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
 
       if (!this.growToFit) {
         break;
@@ -661,8 +673,10 @@ async function createWidget(width, height) {
     growToFit,
     debug
   );
-  const image = await performanceDebugger.wrap(wordCloud.getImage, [], wordCloud);
-  //   const image = await wordCloud.getImage();
+  const image = await overallPerformanceDebugger.wrap(wordCloud.getImage, [], wordCloud);
+
+  overallPerformanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance-overview.csv");
+  deeperPerformanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance-deeper.csv");
 
   const widgetImage = widget.addImage(image);
   widgetImage.applyFillingContentMode();
@@ -681,5 +695,3 @@ if (config.runsInWidget) {
   const widget = await createWidget(530, 530);
   await widget.presentLarge();
 }
-
-performanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance.csv");
