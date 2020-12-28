@@ -279,9 +279,9 @@ class WordCloud {
   }
 
   /**
-   * Uses Scriptable's WebView to load a custom font.  Custom fonts aren't
-   * loaded on the HTML document canvas so they have to be loaded using
-   * their css stylesheet.
+   * Uses Scriptable's WebView to load a custom font.  iOS custom fonts
+   * aren't loaded on the HTML document canvas so they have to be loaded
+   * using their css stylesheet.
    *
    * @param {string} fontFamily - The font family being loaded.
    * @param {string} fontCssUrl - The css url that will be loaded.
@@ -411,7 +411,7 @@ class WordCloud {
     return false;
   }
 
-  async _addTextCentered(x, y, processedWord, shouldDraw) {
+  async _addTextCentered(x, y, processedWord, shouldDraw, checkHitboxes) {
     const { word, wordCloudFont, fontSize, color } = processedWord;
     const dimensions = await this._getTextDimensions(word, wordCloudFont, fontSize);
     const topLeftX = x - (dimensions.width / 2);
@@ -423,7 +423,7 @@ class WordCloud {
       dimensions.height
     );
 
-    if (this._checkRectCollision(rect)) {
+    if (checkHitboxes && this._checkRectCollision(rect)) {
       return {
         textPlaced: false,
         rectCollision: true,
@@ -493,7 +493,7 @@ class WordCloud {
       }
 
       const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered(
-        x, y, processedWord, shouldDraw
+        x, y, processedWord, shouldDraw, checkHitboxes = true
       );
       if (textPlaced) {
         this.placedWords.push({
@@ -555,7 +555,8 @@ class WordCloud {
         placedWord.xFromCenter + this.centerX,
         placedWord.yFromCenter + this.centerY,
         placedWord.processedWord,
-        shouldDraw
+        shouldDraw,
+        checkHitboxes = false
       )
     }
   }
