@@ -11,47 +11,47 @@ const debug = false;
 const minFont = 10;
 const maxFont = 60;
 // const wordData = [
-//   { word: "Christmas", weight: 10 },
-//   { word: "Snow", weight: 10 },
-//   { word: "Sleigh", weight: 8 },
-//   { word: "Santa", weight: 7 },
-//   { word: "Presents", weight: 7 },
-//   { word: "Candy Canes", weight: 7 },
-//   { word: "Advent", weight: 6 },
-//   { word: "Carol", weight: 6 },
-//   { word: "Chimney", weight: 5 },
-//   { word: "Dreidel", weight: 5 },
-//   { word: "Druid", weight: 3 },
-//   { word: "Eggnog", weight: 3 },
-//   { word: "Elves", weight: 3 },
-//   { word: "Epiphany", weight: 3 },
-//   { word: "Feliz Navidad", weight: 3 },
-//   { word: "Frankincense", weight: 2 },
-//   { word: "Gingerbread", weight: 2 },
-//   { word: "Grinch", weight: 2 },
-//   { word: "Hanukkah", weight: 1 },
-//   { word: "Holly", weight: 1 },
-//   { word: "Jolly", weight: 1 }
+//   new WordCloudWord({ word: "Christmas", weight: 10 }),
+//   new WordCloudWord({ word: "Snow", weight: 10 }),
+//   new WordCloudWord({ word: "Sleigh", weight: 8 }),
+//   new WordCloudWord({ word: "Santa", weight: 7 }),
+//   new WordCloudWord({ word: "Presents", weight: 7 }),
+//   new WordCloudWord({ word: "Candy Canes", weight: 7 }),
+//   new WordCloudWord({ word: "Advent", weight: 6 }),
+//   new WordCloudWord({ word: "Carol", weight: 6 }),
+//   new WordCloudWord({ word: "Chimney", weight: 5 }),
+//   new WordCloudWord({ word: "Dreidel", weight: 5 }),
+//   new WordCloudWord({ word: "Druid", weight: 3 }),
+//   new WordCloudWord({ word: "Eggnog", weight: 3 }),
+//   new WordCloudWord({ word: "Elves", weight: 3 }),
+//   new WordCloudWord({ word: "Epiphany", weight: 3 }),
+//   new WordCloudWord({ word: "Feliz Navidad", weight: 3 }),
+//   new WordCloudWord({ word: "Frankincense", weight: 2 }),
+//   new WordCloudWord({ word: "Gingerbread", weight: 2 }),
+//   new WordCloudWord({ word: "Grinch", weight: 2 }),
+//   new WordCloudWord({ word: "Hanukkah", weight: 1 }),
+//   new WordCloudWord({ word: "Holly", weight: 1 }),
+//   new WordCloudWord({ word: "Jolly", weight: 1 })
 // ];
 const wordData = [
-    { word: "Christmas Chr", weight: 10 },
-    { word: "Christmas Chr", weight: 10 },
-    { word: "Christmas Chr", weight: 8 },
-    { word: "Christmas Chr", weight: 7 },
-    { word: "Christmas Chr", weight: 7},
-    { word: "Christmas Chr", weight: 7 },
-    { word: "Christmas Chr", weight: 7 },
-    { word: "Christmas Chr", weight: 7 },
-    { word: "Christmas Chr", weight: 7 },
-    { word: "Christmas", weight: 3},
-    { word: "Christmas Chr", weight: 3},
-    { word: "Christmas Chr", weight: 3},
-    { word: "Christmas Chr", weight: 2},
-    { word: "Christmas Chr", weight: 2},
-    { word: "Christmas Chr", weight: 2},
-    { word: "Christmas Chr", weight: 1},
-    { word: "Christmas Chr", weight: 1},
-    { word: "Christmas Chr", weight: 1}
+  new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 8 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+  new WordCloudWord({ word: "Christmas", weight: 3 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 3 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 3 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 1 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 1 }),
+  new WordCloudWord({ word: "Christmas Chr", weight: 1 })
 ];
 
 class PerformanceDebugger {
@@ -161,6 +161,18 @@ class PerformanceDebugger {
 const overallPerformanceDebugger = new PerformanceDebugger();
 const deeperPerformanceDebugger = new PerformanceDebugger();
 
+class WordCloudWord {
+  constructor({ word, weight }) {
+    if (!word) {
+      throw ("word is required!");
+    }
+    if (!weight) {
+      throw ("weight is required!");
+    }
+    this.word = word;
+    this.weight = weight
+  }
+}
 
 /**
  * Please note that pre-installed fonts need to use
@@ -176,28 +188,57 @@ const deeperPerformanceDebugger = new PerformanceDebugger();
  * -> cssUrl: https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap
  */
 class WordCloudFont {
-  constructor(fontName, cssUrl) {
+  constructor({ fontName, cssUrl }) {
+    if (!fontName) {
+      throw ("fontName is required!");
+    }
     this.fontName = fontName;
     this.cssURL = cssUrl // only for custom fonts
   }
 }
 
+class WordCloudProcessedWord {
+  constructor({ wordCloudFont, fontSize, color }) {
+    if (!wordCloudFont) {
+      throw ("wordCloudFont is required!");
+    }
+    if (!(typeof wordCloudFont === WordCloudFont)) {
+      throw ("wordCloudFont must be a WordCloudFont object!");
+    }
+    if (!fontSize) {
+      throw ("fontSize is required!");
+    }
+    if (!color) {
+      throw ("color is required!");
+    }
+    this.wordCloudFont = wordCloudFont;
+    this.fontSize = fontSize;
+    this.color = color;
+  }
+}
+
 /**
- * A word cloud
- *
- * Required Parameters:
- * width - The width of the canvas.
- * height - The height of the canvas.
- * wordData - The word objects that will be placed on the canvas. Each word needs a "word" (String) and "weight" (Number).
- *
- * Optional Parameters:
- * weightFunction - A function that
- * growToFit - A boolean that determines if the word cloud should expand the canvas to fit all of the provided words.
- * growthFunction - A function that determines how the canvas should grow if growToFit is true.
- * debug - A boolean that writes additional context to the canvas for debugging.
+ * A word cloud.
  */
 class WordCloud {
 
+  /**
+   * @param {number} width
+   *   - The width of the canvas.
+   * @param {number} height
+   *   - The height of the canvas.
+   * @param {WordCloudWord[]} wordData
+   *   - The words that will be displayed on the canvas.
+   *
+   * @param {weightFunction} [weightFunction=this._defaultWeightFunction]
+   *   - The words that will be displayed on the canvas.
+   * @param {boolean} [growToFit=true]
+   *   - A boolean that determines if the word cloud should expand the canvas to fit all of the provided words.
+   * @param {growthFunction} [growthFunction=this._defaultGrowthFunction]
+   *   - A function that determines how the canvas should grow if growToFit is true.
+   * @param {boolean} [debug=false]
+   *   - A boolean that writes additional context to the canvas for debugging.
+   */
   constructor({ width, height, wordData, weightFunction, growToFit, growthFunction, debug }) {
     this.providedWidth = width;
     this.providedHeight = height;
@@ -226,16 +267,36 @@ class WordCloud {
     this.bufferRoom = 10;
   }
 
-  _defaultWeightFunction(text, weight) {
-    return {
-      wordCloudFont: new WordCloudFont(
-        "TrebuchetMS-Bold"
-      ),
-      fontSize: (weight / 10) * (maxFont - minFont) + minFont,
+  /**
+   * This is the default weight function that gets included with the WordCloud class.
+   * Please use it as an example!
+   *
+   * @param {WordCloudWord} wordCloudWord
+   *   - The word that is being processed.
+   * @return {WordCloudProcessedWord}
+   *   - The word after processing.
+   */
+  _defaultWeightFunction(wordCloudWord) {
+    return new WordCloudProcessedWord({
+      wordCloudFont: new WordCloudFont({
+        fontName: "TrebuchetMS-Bold"
+      }),
+      fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
       color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
-    }
+    });
   }
 
+  /**
+   * This is the default growth function that gets included with the WordCloud class.
+   * Please use it as an example!
+   *
+   * @param {number} currentWidth
+   * @param {number} currentHeight
+   * @param {number} originalWidth
+   * @param {number} originalHeight
+   * @return { width, height }
+   *   - The new width and height after processing.
+   */
   _defaultGrowthFunction(currentWidth, currentHeight, originalWidth, originalHeight) {
     return {
       width: currentWidth + currentWidth * 0.1,
@@ -672,23 +733,23 @@ class WordCloud {
  */
 
 function simpleAndCleanWeightFunction(text, weight) {
-  return {
-    wordCloudFont: new WordCloudFont(
-      "TrebuchetMS-Bold"
-    ),
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "TrebuchetMS-Bold"
+    }),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
-  }
+  });
 }
 
 function builtInFestiveWeightFunction(text, weight) {
-  return {
-    wordCloudFont: new WordCloudFont(
-      "SnellRoundhand-Black"
-    ),
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "SnellRoundhand-Black"
+    }),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Math.random() < 0.5 ? Color.red() : Color.green()
-  }
+  });
 }
 
 function hackerWeightFunction(text, weight) {
@@ -696,13 +757,13 @@ function hackerWeightFunction(text, weight) {
     Color.green().hex,
     Color.green().alpha * (weight / 10)
   );
-  return {
-    wordCloudFont: new WordCloudFont(
-      "CourierNewPS-BoldMT"
-    ),
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "CourierNewPS-BoldMT"
+    }),
     fontSize: maxFont,
     color: color
-  }
+  });
 }
 
 /**
@@ -721,38 +782,38 @@ function hackerWeightFunction(text, weight) {
 
 // https://fonts.google.com/specimen/Lacquer
 function spookyWeightFunction(text, weight) {
-  return {
-    wordCloudFont: new WordCloudFont(
-      "Lacquer",
-      "https://fonts.googleapis.com/css2?family=Lacquer&display=swap"
-    ),
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "Lacquer",
+      cssUrl: "https://fonts.googleapis.com/css2?family=Lacquer&display=swap"
+    }),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Color.orange()
-  }
+  });
 }
 
 // https://fonts.google.com/specimen/Cinzel+Decorative
 function customFestiveWeightFunction(text, weight) {
-  return {
-    wordCloudFont: new WordCloudFont(
-      "Cinzel Decorative",
-      "https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap"
-    ),
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "Cinzel Decorative",
+      cssUrl: "https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap"
+    }),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Math.random() < 0.5 ? Color.red() : Color.green()
-  }
+  });
 }
 
 // https://fonts.google.com/specimen/Fredericka+the+Great
 function stencilWeightFunction(text, weight) {
-  return {
-    wordCloudFont: new WordCloudFont(
-      "Fredericka the Great",
-      "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
-    ),
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "Fredericka the Great",
+      cssUrl: "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
+    }),
     fontSize: (weight / 10) * (maxFont - minFont) + minFont,
     color: Color.lightGray()
-  }
+  });
 }
 
 /*************************
