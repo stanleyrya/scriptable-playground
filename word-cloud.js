@@ -7,7 +7,7 @@
  */
 
 const growToFit = true;
-const debug = false;
+const debug = true;
 const minFont = 10;
 const maxFont = 60;
 const wordData = [
@@ -334,9 +334,9 @@ class WordCloud {
 
   _checkRectOutsideBorders(newRect) {
     if (newRect.minX < 0 + this.bufferRoom ||
-      newRect.maxX > this.ctx.size.width - this.bufferRoom ||
+      newRect.maxX > this.width - this.bufferRoom ||
       newRect.minY < 0 + this.bufferRoom ||
-      newRect.maxY > this.ctx.size.height - this.bufferRoom) {
+      newRect.maxY > this.height - this.bufferRoom) {
       // console.log("outside borders!");
       return true;
     }
@@ -381,7 +381,7 @@ class WordCloud {
       };
     }
 
-    //     console.log("writing " + text);
+    console.log("writing " + text);
     this.hitBoxes.push(rect);
 
     if (shouldDraw) {
@@ -460,13 +460,13 @@ class WordCloud {
       if (x < 0) {
         breachedLeft = true;
       }
-      if (x > this.ctx.size.width) {
+      if (x > this.width) {
         breachedRight = true;
       }
       if (y < 0) {
         breachedTop = true;
       }
-      if (y > this.ctx.size.height) {
+      if (y > this.height) {
         breachedBottom = true;
       }
     }
@@ -480,7 +480,7 @@ class WordCloud {
   }
 
   async _writePendingWords(shouldDraw) {
-    //     console.log("writing words that haven't been placed before to spiral");
+    console.log("writing words that haven't been placed before to spiral. shouldDraw: " + shouldDraw);
     let placedAll = true;
     // this.wordDataToPlace is edited whenever a word is placed
     // To be safe, copy it locally first and use the copy
@@ -498,7 +498,6 @@ class WordCloud {
   }
 
   async _writeAlreadyPlacedWords(shouldDraw) {
-    //     console.log("writing words that were already placed before");
     for (const placedWord of this.placedWords) {
       await this._addTextCentered(
         placedWord.xFromCenter + this.centerX,
@@ -621,15 +620,14 @@ class WordCloud {
     let placedAll = false;
     let i = 0;
     while (!placedAll) {
-      this.ctx = new DrawContext();
-      this.ctx.opaque = false;
-      this.ctx.size = new Size(width, height);
+      this.width = width;
+      this.height = height;
       this.centerX = width / 2;
       this.centerY = height / 2;
       this.hitBoxes = [];
 
       await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [false], this, "writeAlreadyPlacedWords-" + i);
-      placedAll = await deeperPerformanceDebugger.wrap(this._writePendingWords, [true], this, "writePendingWords-" + i);
+      placedAll = await deeperPerformanceDebugger.wrap(this._writePendingWords, [false], this, "writePendingWords-" + i);
 
       if (!this.growToFit) {
         break;
@@ -641,6 +639,10 @@ class WordCloud {
       }
       i++;
     }
+    this.hitBoxes = [];
+    this.ctx = new DrawContext();
+    this.ctx.opaque = false;
+    this.ctx.size = new Size(width, height);
     await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [true], this, "writeAlreadyPlacedWords-" + i);
 
     if (this.debug) {
