@@ -355,7 +355,7 @@ class WordCloud {
     return false;
   }
 
-  async _addTextCentered(x, y, text, wordCloudFont, fontSize, color) {
+  async _addTextCentered(x, y, text, wordCloudFont, fontSize, color, shouldDraw) {
     const dimensions = await this._getTextDimensions(text, wordCloudFont, fontSize);
     const topLeftX = x - (dimensions.width / 2);
     const topLeftY = y - (dimensions.height / 2);
@@ -384,17 +384,19 @@ class WordCloud {
     //     console.log("writing " + text);
     this.hitBoxes.push(rect);
 
-    if (this.debug) {
-      this.ctx.setLineWidth(5);
-      this.ctx.setStrokeColor(Color.red());
-      this.ctx.strokeRect(rect);
-    }
+    if (shouldDraw) {
+      if (this.debug) {
+        this.ctx.setLineWidth(5);
+        this.ctx.setStrokeColor(Color.red());
+        this.ctx.strokeRect(rect);
+      }
 
-    // I'm not sure why, but the text is a quarter off from the box.
-    const quarterHeight = dimensions.height / 4;
-    this.ctx.setTextColor(color);
-    this.ctx.setFont(new Font(wordCloudFont.fontName, fontSize));
-    this.ctx.drawText(text, new Point(topLeftX, topLeftY - quarterHeight));
+      // I'm not sure why, but the text is a quarter off from the box.
+      const quarterHeight = dimensions.height / 4;
+      this.ctx.setTextColor(color);
+      this.ctx.setFont(new Font(wordCloudFont.fontName, fontSize));
+      this.ctx.drawText(text, new Point(topLeftX, topLeftY - quarterHeight));
+    }
     return {
       textPlaced: true,
       rectCollision: false,
@@ -406,7 +408,7 @@ class WordCloud {
     return Math.random() < 0.5 ? -1 : 1;
   }
 
-  async _writeToSpiral(word, weight) {
+  async _writeToSpiral(word, weight, shouldDraw) {
     let breachedLeft = false;
     let breachedRight = false;
     let breachedTop = false;
@@ -425,7 +427,7 @@ class WordCloud {
       angle += (Math.PI * 2) / this.partsPerCircle * radiusDirection;
       let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
       let y = this.centerY + radius * Math.sin(angle) * this.yRatio;
-      if (this.debug) {
+      if (this.debug && shouldDraw) {
         path.addLine(new Point(x, y));
       }
       // TODO: Check point outside borders?
@@ -435,7 +437,7 @@ class WordCloud {
 
       const { wordCloudFont, fontSize, color } = this.weightFunction(word, weight);
       const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered(
-        x, y, word, wordCloudFont, fontSize, color
+        x, y, word, wordCloudFont, fontSize, color, shouldDraw
       );
       if (textPlaced) {
         this.placedWords.push({
@@ -468,7 +470,7 @@ class WordCloud {
         breachedBottom = true;
       }
     }
-    if (this.debug) {
+    if (this.debug && shouldDraw) {
       this.ctx.setLineWidth(.1);
       this.ctx.addPath(path);
       this.ctx.setStrokeColor(Color.cyan());
@@ -477,14 +479,14 @@ class WordCloud {
     return placed;
   }
 
-  async _writePendingWords() {
+  async _writePendingWords(shouldDraw) {
     //     console.log("writing words that haven't been placed before to spiral");
     let placedAll = true;
     // this.wordDataToPlace is edited whenever a word is placed
     // To be safe, copy it locally first and use the copy
     const copiedWordDataToPlace = [...this.wordDataToPlace];
     for (const wordDatum of copiedWordDataToPlace) {
-      if (!(await this._writeToSpiral(wordDatum.word, wordDatum.weight))) {
+      if (!(await this._writeToSpiral(wordDatum.word, wordDatum.weight, shouldDraw))) {
         placedAll = false;
         // Stop trying to place words if growToFit
         if (this.growToFit) {
@@ -495,7 +497,7 @@ class WordCloud {
     return placedAll;
   }
 
-  async _writeAlreadyPlacedWords() {
+  async _writeAlreadyPlacedWords(shouldDraw) {
     //     console.log("writing words that were already placed before");
     for (const placedWord of this.placedWords) {
       await this._addTextCentered(
@@ -504,7 +506,8 @@ class WordCloud {
         placedWord.text,
         placedWord.wordCloudFont,
         placedWord.fontSize,
-        placedWord.color
+        placedWord.color,
+        shouldDraw
       )
     }
   }
@@ -625,8 +628,8 @@ class WordCloud {
       this.centerY = height / 2;
       this.hitBoxes = [];
 
-      await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [], this, "writeAlreadyPlacedWords-" + i);
-      placedAll = await deeperPerformanceDebugger.wrap(this._writePendingWords, [], this, "writePendingWords-" + i);
+      await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [false], this, "writeAlreadyPlacedWords-" + i);
+      placedAll = await deeperPerformanceDebugger.wrap(this._writePendingWords, [true], this, "writePendingWords-" + i);
 
       if (!this.growToFit) {
         break;
@@ -638,6 +641,7 @@ class WordCloud {
       }
       i++;
     }
+    await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [true], this, "writeAlreadyPlacedWords-" + i);
 
     if (this.debug) {
       this.ctx.setLineWidth(5);
