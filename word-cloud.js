@@ -180,12 +180,16 @@ class WordCloudProcessedWord {
 class WordCloud {
 
   /**
+   * Required:
+   *
    * @param {number} width
    *   - The width of the canvas.
    * @param {number} height
    *   - The height of the canvas.
    * @param {WordCloudWord[]} wordData
    *   - The words that will be displayed on the canvas.
+   *
+   * Optional:
    *
    * @param {weightFunction} [weightFunction=this._defaultWeightFunction]
    *   - The words that will be displayed on the canvas.
@@ -196,13 +200,21 @@ class WordCloud {
    * @param {boolean} [debug=false]
    *   - A boolean that writes additional context to the canvas for debugging.
    */
-  constructor({ width, height, wordData, weightFunction, growToFit, growthFunction, debug }) {
+  constructor({
+    width,
+    height,
+    wordData,
+    weightFunction = this._defaultWeightFunction,
+    growToFit = true,
+    growthFunction = this._defaultGrowthFunction,
+    debug = false
+  }) {
     this.providedWidth = width;
     this.providedHeight = height;
     this.wordData = wordData;
-    this.weightFunction = weightFunction || this._defaultWeightFunction;
-    this.growthFunction = growthFunction || this._defaultGrowthFunction;
+    this.weightFunction = weightFunction;
     this.growToFit = !!growToFit;
+    this.growthFunction = growthFunction;
     this.debug = !!debug;
 
     this.webView = new WebView();
@@ -251,7 +263,7 @@ class WordCloud {
    * @param {number} currentHeight
    * @param {number} originalWidth
    * @param {number} originalHeight
-   * @return { width, height }
+   * @return { number, number } { width, height }
    *   - The new width and height after processing.
    */
   _defaultGrowthFunction(currentWidth, currentHeight, originalWidth, originalHeight) {
@@ -262,10 +274,12 @@ class WordCloud {
   }
 
   /**
-   * Uses Scriptable's WebView to load a custom font.
+   * Uses Scriptable's WebView to load a custom font.  Custom fonts aren't
+   * loaded on the HTML document canvas so they have to be loaded using
+   * their css stylesheet.
    *
-   * @param {String} fontFamily The font family being loaded.
-   * @param {String} fontCssUrl The css url that will be loaded.
+   * @param {string} fontFamily - The font family being loaded.
+   * @param {string} fontCssUrl - The css url that will be loaded.
    */
   _loadFontToWebView(fontFamily, fontCssUrl) {
     const html = `
@@ -285,10 +299,15 @@ class WordCloud {
   }
 
   /**
-   * Uses Scriptable's WebView to call canvas.measureText on the given text of given font in pixels.
+   * Uses Scriptable's WebView to call canvas.measureText on the
+   * given text of given font in pixels.
    *
-   * @param {String} text The text to be rendered.
-   * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
+   * @param {string} text
+   *  - The text to be rendered.
+   * @param {string} font
+   *  - The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
+   * @return { number, number } { width, height }
+   *  - The width and height of the text.
    *
    * @see Inspired from: https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
    */
@@ -311,7 +330,7 @@ class WordCloud {
       .replace("REPLACE_TEXT", text)
       .replace("REPLACE_FONT", cssFont);
 
-    return this.webView.evaluateJavaScript(javascript);
+    this.webView.evaluateJavaScript(javascript);
   }
 
   /**
@@ -440,7 +459,7 @@ class WordCloud {
     return Math.random() < 0.5 ? -1 : 1;
   }
 
-  async _writeToSpiral(word, weight, shouldDraw) {
+  async _writeToSpiral(wordCloudWord, shouldDraw) {
     let breachedLeft = false;
     let breachedRight = false;
     let breachedTop = false;
@@ -467,18 +486,18 @@ class WordCloud {
         continue;
       }
 
-      const { wordCloudFont, fontSize, color } = this.weightFunction(word, weight);
+      const { wordCloudFont, fontSize, color } = this.weightFunction(wordCloudWord);
       const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered(
-        x, y, word, wordCloudFont, fontSize, color, shouldDraw
+        x, y, wordCloudWord.word, wordCloudFont, fontSize, color, shouldDraw
       );
       if (textPlaced) {
         this.placedWords.push({
           xFromCenter: x - this.centerX,
           yFromCenter: y - this.centerY,
-          text: word,
+          text: wordCloudWord.word,
           wordCloudFont: wordCloudFont,
           fontSize: fontSize,
-          color: color,
+          color: color
         });
         this.wordDataToPlace.shift();
         placed = true;
@@ -512,7 +531,6 @@ class WordCloud {
   }
 
   async _writePendingWords(shouldDraw) {
-    console.log("writing words that haven't been placed before to spiral. shouldDraw: " + shouldDraw);
     let placedAll = true;
     // this.wordDataToPlace is edited whenever a word is placed
     // To be safe, copy it locally first and use the copy
@@ -546,13 +564,16 @@ class WordCloud {
   /**
    * Returns some statistics about the words provided so the DrawContext
    * can be adjusted to fit them.
+   *
+   * @return { number, number, number } { minWidth, minHeight, minArea }
+   *  - The minimum width, height, and area that the canvas needs to fit the words.
    */
   async _getWordStats() {
     let minWidth = 0;
     let minHeight = 0;
     let minArea = 0;
-    for (const wordDatum of this.wordData) {
-      const { wordCloudFont, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
+    for (const wordCloudWord of this.wordData) {
+      const { wordCloudFont, fontSize, color } = this.weightFunction(wordCloudWord);
       const dimensions = await this._getTextDimensions(wordDatum.word, wordCloudFont, fontSize);
 
       if (minWidth < dimensions.width) {
@@ -576,12 +597,17 @@ class WordCloud {
    *
    * Unlike the _getWordStats() function, this function will return
    * a different result depending on the current width and height.
+   *
+   * @param {number} ctxWidth - The width the words are being checked against.
+   * @param {number} ctxHeight - The height the words are being checked against.
+   * @return { number, number } { stackedMinWidth, stackedMinHeight }
+   *  - The minimum width and height the canvas needs to fit the words.
    */
   async _getStackedMinDimensions(ctxWidth, ctxHeight) {
     let stackedMinHeight = 0;
     let stackedMinWidth = 0;
-    for (const wordDatum of this.wordData) {
-      const { wordCloudFont, fontSize, color } = this.weightFunction(wordDatum.word, wordDatum.weight);
+    for (const wordCloudWord of this.wordData) {
+      const { wordCloudFont, fontSize, color } = this.weightFunction(wordCloudWord);
       const dimensions = await this._getTextDimensions(wordDatum.word, wordCloudFont, fontSize);
 
       if (dimensions.width > ctxWidth / 2) {
@@ -596,9 +622,14 @@ class WordCloud {
 
   /**
    * Before words are placed on the spiral it's possible to grow the
-   * DrawContext using information we know about the words. This is
-   * faster than placing all of the words on the sprial and iterating
-   * so it's preferred to run this function first.
+   * canvas using information we know about the words. This is faster
+   * than placing all of the words on the sprial and iterating so it's
+   * preferred to run this function first.
+   *
+   * @param {number} ctxWidth - The current width of the canvas.
+   * @param {number} ctxHeight - The current height of the canvas.
+   * @return { number, number } { width, height }
+   *  - The new width and height for the canvas.
    */
   async _preflightGrow(ctxWidth, ctxHeight) {
     let width = ctxWidth;
@@ -632,6 +663,23 @@ class WordCloud {
     return { width, height }
   }
 
+  /**
+   * If growToFit is true, the canvas will grow until all of the words
+   * fit on the canvas. This is done using the following algorithm:
+   *
+   * 1. "Preflight": The words are analyzed to see if the canvas needs
+   *    growing before anything is written to the canvas.
+   * 2. "Placement": The words are placed on the canvas until either:
+   *    A) a word can't be placed anymore or B) a word overlaps with
+   *    the outside of the canvas. We check for B so the result stays
+   *    "tight". Skipping this step usually results in "tall" word clouds.
+   * 3. "Grow and Repeat": The canvas is grown, the words that have
+   *    already been placed before are placed in their last positions,
+   *    and the "Placement" step starts over again. This repeats until
+   *    all of the words are placed on the canvas.
+   *
+   * @return { Image } - The image of the WordCloud!
+   */
   async getImage() {
     let width = this.providedWidth;
     let height = this.providedHeight;
@@ -678,6 +726,105 @@ class WordCloud {
 
 }
 
+/****************************
+ ***** WEIGHT FUNCTIONS *****
+ ****************************/
+
+/**
+ * Functions that use fonts already installed in iOS.
+ *
+ * Find the fonts here:
+ * http://iosfonts.com
+ */
+
+function simpleAndCleanWeightFunction(wordCloudWord) {
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "TrebuchetMS-Bold"
+    }),
+    fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
+    color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
+  });
+}
+
+function builtInFestiveWeightFunction(wordCloudWord) {
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "SnellRoundhand-Black"
+    }),
+    fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
+    color: Math.random() < 0.5 ? Color.red() : Color.green()
+  });
+}
+
+function hackerWeightFunction(wordCloudWord) {
+  const color = new Color(
+    Color.green().hex,
+    Color.green().alpha * (wordCloudWord.weight / 10)
+  );
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "CourierNewPS-BoldMT"
+    }),
+    fontSize: maxFont,
+    color: color
+  });
+}
+
+/**
+ * Functions that use fonts installed through an app.
+ * A url of the css stylesheet is still required due
+ * to limitations of the system. The fontName is the
+ * font family.
+ *
+ * This article [1] suggests this app [2] is the
+ * safest way to download fonts to iOS. Be careful,
+ * use at your own risk!
+ *
+ * [1] - https://9to5mac.com/2020/06/12/fontcase-open-source-fonts-app-iphone-ipad
+ * [2] - https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470
+ */
+
+// https://fonts.google.com/specimen/Lacquer
+function spookyWeightFunction(wordCloudWord) {
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "Lacquer",
+      cssUrl: "https://fonts.googleapis.com/css2?family=Lacquer&display=swap"
+    }),
+    fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
+    color: Color.orange()
+  });
+}
+
+// https://fonts.google.com/specimen/Cinzel+Decorative
+function customFestiveWeightFunction(wordCloudWord) {
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "Cinzel Decorative",
+      cssUrl: "https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap"
+    }),
+    fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
+    color: Math.random() < 0.5 ? Color.red() : Color.green()
+  });
+}
+
+// https://fonts.google.com/specimen/Fredericka+the+Great
+function stencilWeightFunction(wordCloudWord) {
+  return new WordCloudProcessedWord({
+    wordCloudFont: new WordCloudFont({
+      fontName: "Fredericka the Great",
+      cssUrl: "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
+    }),
+    fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
+    color: Color.lightGray()
+  });
+}
+
+/*************************
+ ***** WIDGET CONFIG *****
+ *************************/
+
 const wordData = [
   new WordCloudWord({ word: "Christmas", weight: 10 }),
   new WordCloudWord({ word: "Snow", weight: 10 }),
@@ -721,105 +868,6 @@ const wordData = [
 //   new WordCloudWord({ word: "Christmas Chr", weight: 1 }),
 //   new WordCloudWord({ word: "Christmas Chr", weight: 1 })
 // ];
-
-/****************************
- ***** WEIGHT FUNCTIONS *****
- ****************************/
-
-/**
- * Functions that use fonts already installed in iOS.
- *
- * Find the fonts here:
- * http://iosfonts.com
- */
-
-function simpleAndCleanWeightFunction(text, weight) {
-  return new WordCloudProcessedWord({
-    wordCloudFont: new WordCloudFont({
-      fontName: "TrebuchetMS-Bold"
-    }),
-    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
-    color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
-  });
-}
-
-function builtInFestiveWeightFunction(text, weight) {
-  return new WordCloudProcessedWord({
-    wordCloudFont: new WordCloudFont({
-      fontName: "SnellRoundhand-Black"
-    }),
-    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
-    color: Math.random() < 0.5 ? Color.red() : Color.green()
-  });
-}
-
-function hackerWeightFunction(text, weight) {
-  const color = new Color(
-    Color.green().hex,
-    Color.green().alpha * (weight / 10)
-  );
-  return new WordCloudProcessedWord({
-    wordCloudFont: new WordCloudFont({
-      fontName: "CourierNewPS-BoldMT"
-    }),
-    fontSize: maxFont,
-    color: color
-  });
-}
-
-/**
- * Functions that use fonts installed through an app.
- * A url of the css stylesheet is still required due
- * to limitations of the system. The fontName is the
- * font family.
- *
- * This article [1] suggests this app [2] is the
- * safest way to download fonts to iOS. Be careful,
- * use at your own risk!
- *
- * [1] - https://9to5mac.com/2020/06/12/fontcase-open-source-fonts-app-iphone-ipad
- * [2] - https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470
- */
-
-// https://fonts.google.com/specimen/Lacquer
-function spookyWeightFunction(text, weight) {
-  return new WordCloudProcessedWord({
-    wordCloudFont: new WordCloudFont({
-      fontName: "Lacquer",
-      cssUrl: "https://fonts.googleapis.com/css2?family=Lacquer&display=swap"
-    }),
-    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
-    color: Color.orange()
-  });
-}
-
-// https://fonts.google.com/specimen/Cinzel+Decorative
-function customFestiveWeightFunction(text, weight) {
-  return new WordCloudProcessedWord({
-    wordCloudFont: new WordCloudFont({
-      fontName: "Cinzel Decorative",
-      cssUrl: "https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap"
-    }),
-    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
-    color: Math.random() < 0.5 ? Color.red() : Color.green()
-  });
-}
-
-// https://fonts.google.com/specimen/Fredericka+the+Great
-function stencilWeightFunction(text, weight) {
-  return new WordCloudProcessedWord({
-    wordCloudFont: new WordCloudFont({
-      fontName: "Fredericka the Great",
-      cssUrl: "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
-    }),
-    fontSize: (weight / 10) * (maxFont - minFont) + minFont,
-    color: Color.lightGray()
-  });
-}
-
-/*************************
- ***** WIDGET CONFIG *****
- *************************/
 
 async function createWidget(width, height) {
   let widget = new ListWidget();
