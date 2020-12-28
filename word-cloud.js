@@ -162,29 +162,43 @@ const overallPerformanceDebugger = new PerformanceDebugger();
 const deeperPerformanceDebugger = new PerformanceDebugger();
 
 
+/**
+ * Please note that pre-installed fonts need to use
+ * the name provieded here: http://iosfonts.com
+ * For example: TrebuchetMS-Bold
+ *
+ * Custom fonts such as google's fonts need to use
+ * the name of their font family and the URL to
+ * their css stylesheet. Here's an example for
+ * google:
+ * https://fonts.google.com/specimen/Fredericka+the+Great?sidebar.open=true&selection.family=Fredericka+the+Great#about
+ * -> fontName: Fredericka the Great
+ * -> cssUrl: https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap
+ */
 class WordCloudFont {
-  /**
-   * Please note that pre-installed fonts need to use
-   * the name provieded here: http://iosfonts.com
-   * For example: TrebuchetMS-Bold
-   *
-   * Custom fonts such as google's fonts need to use
-   * the name of their font family and the URL to
-   * their css stylesheet. Here's an example for
-   * google:
-   * https://fonts.google.com/specimen/Fredericka+the+Great?sidebar.open=true&selection.family=Fredericka+the+Great#about
-   * -> fontName: Fredericka the Great
-   * -> cssUrl: https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap
-   */
   constructor(fontName, cssUrl) {
     this.fontName = fontName;
     this.cssURL = cssUrl // only for custom fonts
   }
 }
 
+/**
+ * A word cloud
+ *
+ * Required Parameters:
+ * width - The width of the canvas.
+ * height - The height of the canvas.
+ * wordData - The word objects that will be placed on the canvas. Each word needs a "word" (String) and "weight" (Number).
+ *
+ * Optional Parameters:
+ * weightFunction - A function that
+ * growToFit - A boolean that determines if the word cloud should expand the canvas to fit all of the provided words.
+ * growthFunction - A function that determines how the canvas should grow if growToFit is true.
+ * debug - A boolean that writes additional context to the canvas for debugging.
+ */
 class WordCloud {
 
-  constructor(width, height, wordData, weightFunction, growthFunction, growToFit, debug) {
+  constructor({ width, height, wordData, weightFunction, growToFit, growthFunction, debug }) {
     this.providedWidth = width;
     this.providedHeight = height;
     this.wordData = wordData;
@@ -750,15 +764,15 @@ async function createWidget(width, height) {
   widget.setPadding(0, 0, 0, 0);
 
 
-  const wordCloud = new WordCloud(
+  const wordCloud = new WordCloud({
     width,
     height,
     wordData,
-    hackerWeightFunction,
-    undefined,
+    weightFunction: hackerWeightFunction,
     growToFit,
+    growthFunction: undefined,
     debug
-  );
+  });
   const image = await overallPerformanceDebugger.wrap(wordCloud.getImage, [], wordCloud);
 
   overallPerformanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance-overview.csv");
