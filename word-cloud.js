@@ -10,49 +10,6 @@ const growToFit = true;
 const debug = false;
 const minFont = 10;
 const maxFont = 60;
-// const wordData = [
-//   new WordCloudWord({ word: "Christmas", weight: 10 }),
-//   new WordCloudWord({ word: "Snow", weight: 10 }),
-//   new WordCloudWord({ word: "Sleigh", weight: 8 }),
-//   new WordCloudWord({ word: "Santa", weight: 7 }),
-//   new WordCloudWord({ word: "Presents", weight: 7 }),
-//   new WordCloudWord({ word: "Candy Canes", weight: 7 }),
-//   new WordCloudWord({ word: "Advent", weight: 6 }),
-//   new WordCloudWord({ word: "Carol", weight: 6 }),
-//   new WordCloudWord({ word: "Chimney", weight: 5 }),
-//   new WordCloudWord({ word: "Dreidel", weight: 5 }),
-//   new WordCloudWord({ word: "Druid", weight: 3 }),
-//   new WordCloudWord({ word: "Eggnog", weight: 3 }),
-//   new WordCloudWord({ word: "Elves", weight: 3 }),
-//   new WordCloudWord({ word: "Epiphany", weight: 3 }),
-//   new WordCloudWord({ word: "Feliz Navidad", weight: 3 }),
-//   new WordCloudWord({ word: "Frankincense", weight: 2 }),
-//   new WordCloudWord({ word: "Gingerbread", weight: 2 }),
-//   new WordCloudWord({ word: "Grinch", weight: 2 }),
-//   new WordCloudWord({ word: "Hanukkah", weight: 1 }),
-//   new WordCloudWord({ word: "Holly", weight: 1 }),
-//   new WordCloudWord({ word: "Jolly", weight: 1 })
-// ];
-const wordData = [
-  new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 8 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-  new WordCloudWord({ word: "Christmas", weight: 3 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 3 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 3 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 1 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 1 }),
-  new WordCloudWord({ word: "Christmas Chr", weight: 1 })
-];
 
 class PerformanceDebugger {
 
@@ -202,7 +159,7 @@ class WordCloudProcessedWord {
     if (!wordCloudFont) {
       throw ("wordCloudFont is required!");
     }
-    if (!(typeof wordCloudFont === WordCloudFont)) {
+    if (!(wordCloudFont instanceof WordCloudFont)) {
       throw ("wordCloudFont must be a WordCloudFont object!");
     }
     if (!fontSize) {
@@ -720,6 +677,50 @@ class WordCloud {
   }
 
 }
+
+const wordData = [
+  new WordCloudWord({ word: "Christmas", weight: 10 }),
+  new WordCloudWord({ word: "Snow", weight: 10 }),
+  new WordCloudWord({ word: "Sleigh", weight: 8 }),
+  new WordCloudWord({ word: "Santa", weight: 7 }),
+  new WordCloudWord({ word: "Presents", weight: 7 }),
+  new WordCloudWord({ word: "Candy Canes", weight: 7 }),
+  new WordCloudWord({ word: "Advent", weight: 6 }),
+  new WordCloudWord({ word: "Carol", weight: 6 }),
+  new WordCloudWord({ word: "Chimney", weight: 5 }),
+  new WordCloudWord({ word: "Dreidel", weight: 5 }),
+  new WordCloudWord({ word: "Druid", weight: 3 }),
+  new WordCloudWord({ word: "Eggnog", weight: 3 }),
+  new WordCloudWord({ word: "Elves", weight: 3 }),
+  new WordCloudWord({ word: "Epiphany", weight: 3 }),
+  new WordCloudWord({ word: "Feliz Navidad", weight: 3 }),
+  new WordCloudWord({ word: "Frankincense", weight: 2 }),
+  new WordCloudWord({ word: "Gingerbread", weight: 2 }),
+  new WordCloudWord({ word: "Grinch", weight: 2 }),
+  new WordCloudWord({ word: "Hanukkah", weight: 1 }),
+  new WordCloudWord({ word: "Holly", weight: 1 }),
+  new WordCloudWord({ word: "Jolly", weight: 1 })
+];
+// const wordData = [
+//   new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 8 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
+//   new WordCloudWord({ word: "Christmas", weight: 3 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 3 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 3 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 1 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 1 }),
+//   new WordCloudWord({ word: "Christmas Chr", weight: 1 })
+// ];
 
 /****************************
  ***** WEIGHT FUNCTIONS *****
