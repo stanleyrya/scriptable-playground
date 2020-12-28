@@ -321,7 +321,7 @@ class WordCloud {
       newRect.maxX > this.ctx.size.width - this.bufferRoom ||
       newRect.minY < 0 + this.bufferRoom ||
       newRect.maxY > this.ctx.size.height - this.bufferRoom) {
-//       console.log("outside borders!");
+      // console.log("outside borders!");
       return true;
     }
     return false;
@@ -350,8 +350,19 @@ class WordCloud {
       dimensions.height
     );
 
-    if (this._checkRectCollision(rect) || this._checkRectOutsideBorders(rect)) {
-      return false;
+    if (this._checkRectCollision(rect)) {
+      return {
+        placed: false,
+        rectCollision: true,
+        outsideBorders: false
+      };
+    }
+    if (this._checkRectOutsideBorders(rect)) {
+      return {
+        placed: false,
+        rectCollision: false,
+        outsideBorders: true
+      };
     }
 
     console.log("writing " + text);
@@ -368,7 +379,11 @@ class WordCloud {
     this.ctx.setTextColor(color);
     this.ctx.setFont(new Font(wordCloudFont.fontName, fontSize));
     this.ctx.drawText(text, new Point(topLeftX, topLeftY - quarterHeight));
-    return true;
+    return {
+      placed: true,
+      rectCollision: false,
+      outsideBorders: false
+    };
   }
 
   _getRandomDirection() {
@@ -397,14 +412,16 @@ class WordCloud {
       if (this.debug) {
         path.addLine(new Point(x, y));
       }
+      // TODO: Check point outside borders?
       if (this._checkPointCollision(x, y)) {
         continue;
       }
 
       const { wordCloudFont, fontSize, color } = this.weightFunction(word, weight);
-      if (await this._addTextCentered(
-          x, y, word, wordCloudFont, fontSize, color
-        )) {
+      const { placed, rectCollision, outsideBorders } = await this._addTextCentered(
+        x, y, word, wordCloudFont, fontSize, color
+      );
+      if (placed) {
         this.placedWords.push({
           xFromCenter: x - this.centerX,
           yFromCenter: y - this.centerY,
@@ -415,6 +432,10 @@ class WordCloud {
         });
         this.wordDataToPlace.shift();
         placed = true;
+        break;
+      }
+      // If we're growing to fit, break out so the word cloud is tightly packed
+      if (outsideBorders && this.growToFit) {
         break;
       }
 
