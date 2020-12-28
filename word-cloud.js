@@ -292,11 +292,14 @@ class WordCloud {
     }
   }
 
-  // https://stackoverflow.com/a/306332
-  // if (RectA.Left < RectB.Right &&
-  //     RectA.Right > RectB.Left &&
-  //     RectA.Top < RectB.Bottom &&
-  //     RectA.Bottom > RectB.Top)
+  /**
+   * if (RectA.Left < RectB.Right &&
+   *     RectA.Right > RectB.Left &&
+   *     RectA.Top < RectB.Bottom &&
+   *     RectA.Bottom > RectB.Top)
+   *
+   * https://stackoverflow.com/a/306332
+   */
   _checkRectCollision(newRect) {
     for (const placedRect of this.hitBoxes) {
       if (newRect.minX < placedRect.maxX + this.bufferRoom &&
@@ -666,7 +669,7 @@ function hackerWeightFunction(text, weight) {
  * safest way to download fonts to iOS. Be careful,
  * use at your own risk!
  *
- * [1] - https://9to5mac.com/2020/06/12/fontcase-open-source-fonts-app-iphone-ipad/?_gl=1*y6rqnk*_ga*YW1wLXQ3TjlTR2RZT2p2TmF0UG95cm1xM09SVXRmOHJwOERaaE1Za0MwQllDQjQzay11M3NDVkc4Wkh6NHVGdEgxeEc.
+ * [1] - https://9to5mac.com/2020/06/12/fontcase-open-source-fonts-app-iphone-ipad
  * [2] - https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470
  */
 
