@@ -438,7 +438,7 @@ class WordCloud {
       };
     }
 
-    console.log("writing " + text);
+    console.log("writing " + word);
     this.hitBoxes.push(rect);
 
     if (shouldDraw) {
@@ -452,7 +452,7 @@ class WordCloud {
       const quarterHeight = dimensions.height / 4;
       this.ctx.setTextColor(color);
       this.ctx.setFont(new Font(wordCloudFont.fontName, fontSize));
-      this.ctx.drawText(text, new Point(topLeftX, topLeftY - quarterHeight));
+      this.ctx.drawText(word, new Point(topLeftX, topLeftY - quarterHeight));
     }
     return {
       textPlaced: true,
