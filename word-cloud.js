@@ -411,7 +411,7 @@ class WordCloud {
     return false;
   }
 
-  async _addTextCentered(x, y, processedWord, shouldDraw, checkHitboxes) {
+  async _addTextCentered({x, y, processedWord, shouldDraw, checkHitboxes}) {
     const { word, wordCloudFont, fontSize, color } = processedWord;
     const dimensions = await this._getTextDimensions(word, wordCloudFont, fontSize);
     const topLeftX = x - (dimensions.width / 2);
@@ -492,9 +492,13 @@ class WordCloud {
         continue;
       }
 
-      const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered(
-        x, y, processedWord, shouldDraw, checkHitboxes = true
-      );
+      const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered({
+        x,
+        y,
+        processedWord,
+        shouldDraw,
+        checkHitboxes: true
+      });
       if (textPlaced) {
         this.placedWords.push({
           xFromCenter: x - this.centerX,
@@ -551,13 +555,13 @@ class WordCloud {
 
   async _writeAlreadyPlacedWords(shouldDraw) {
     for (const placedWord of this.placedWords) {
-      await this._addTextCentered(
-        placedWord.xFromCenter + this.centerX,
-        placedWord.yFromCenter + this.centerY,
-        placedWord.processedWord,
+      await this._addTextCentered({
+        x: placedWord.xFromCenter + this.centerX,
+        y: placedWord.yFromCenter + this.centerY,
+        processedWord: placedWord.processedWord,
         shouldDraw,
-        checkHitboxes = false
-      )
+        checkHitboxes: false
+      })
     }
   }
 
@@ -709,7 +713,7 @@ class WordCloud {
       }
       i++;
     }
-    this.hitBoxes = [];
+
     this.ctx = new DrawContext();
     this.ctx.opaque = false;
     this.ctx.size = new Size(width, height);
