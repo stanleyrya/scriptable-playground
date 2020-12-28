@@ -7,52 +7,52 @@
  */
 
 const growToFit = true;
-const debug = true;
+const debug = false;
 const minFont = 10;
 const maxFont = 60;
-const wordData = [
-  { word: "Christmas", weight: 10 },
-  { word: "Snow", weight: 10 },
-  { word: "Sleigh", weight: 8 },
-  { word: "Santa", weight: 7 },
-  { word: "Presents", weight: 7 },
-  { word: "Candy Canes", weight: 7 },
-  { word: "Advent", weight: 6 },
-  { word: "Carol", weight: 6 },
-  { word: "Chimney", weight: 5 },
-  { word: "Dreidel", weight: 5 },
-  { word: "Druid", weight: 3 },
-  { word: "Eggnog", weight: 3 },
-  { word: "Elves", weight: 3 },
-  { word: "Epiphany", weight: 3 },
-  { word: "Feliz Navidad", weight: 3 },
-  { word: "Frankincense", weight: 2 },
-  { word: "Gingerbread", weight: 2 },
-  { word: "Grinch", weight: 2 },
-  { word: "Hanukkah", weight: 1 },
-  { word: "Holly", weight: 1 },
-  { word: "Jolly", weight: 1 }
-];
 // const wordData = [
-//     { word: "Christmas Chr", weight: 10 },
-//     { word: "Christmas Chr", weight: 10 },
-//     { word: "Christmas Chr", weight: 8 },
-//     { word: "Christmas Chr", weight: 7 },
-//     { word: "Christmas Chr", weight: 7},
-//     { word: "Christmas Chr", weight: 7 },
-//     { word: "Christmas Chr", weight: 7 },
-//     { word: "Christmas Chr", weight: 7 },
-//     { word: "Christmas Chr", weight: 7 },
-//     { word: "Christmas", weight: 3},
-//     { word: "Christmas Chr", weight: 3},
-//     { word: "Christmas Chr", weight: 3},
-//     { word: "Christmas Chr", weight: 2},
-//     { word: "Christmas Chr", weight: 2},
-//     { word: "Christmas Chr", weight: 2},
-//     { word: "Christmas Chr", weight: 1},
-//     { word: "Christmas Chr", weight: 1},
-//     { word: "Christmas Chr", weight: 1}
+//   { word: "Christmas", weight: 10 },
+//   { word: "Snow", weight: 10 },
+//   { word: "Sleigh", weight: 8 },
+//   { word: "Santa", weight: 7 },
+//   { word: "Presents", weight: 7 },
+//   { word: "Candy Canes", weight: 7 },
+//   { word: "Advent", weight: 6 },
+//   { word: "Carol", weight: 6 },
+//   { word: "Chimney", weight: 5 },
+//   { word: "Dreidel", weight: 5 },
+//   { word: "Druid", weight: 3 },
+//   { word: "Eggnog", weight: 3 },
+//   { word: "Elves", weight: 3 },
+//   { word: "Epiphany", weight: 3 },
+//   { word: "Feliz Navidad", weight: 3 },
+//   { word: "Frankincense", weight: 2 },
+//   { word: "Gingerbread", weight: 2 },
+//   { word: "Grinch", weight: 2 },
+//   { word: "Hanukkah", weight: 1 },
+//   { word: "Holly", weight: 1 },
+//   { word: "Jolly", weight: 1 }
 // ];
+const wordData = [
+    { word: "Christmas Chr", weight: 10 },
+    { word: "Christmas Chr", weight: 10 },
+    { word: "Christmas Chr", weight: 8 },
+    { word: "Christmas Chr", weight: 7 },
+    { word: "Christmas Chr", weight: 7},
+    { word: "Christmas Chr", weight: 7 },
+    { word: "Christmas Chr", weight: 7 },
+    { word: "Christmas Chr", weight: 7 },
+    { word: "Christmas Chr", weight: 7 },
+    { word: "Christmas", weight: 3},
+    { word: "Christmas Chr", weight: 3},
+    { word: "Christmas Chr", weight: 3},
+    { word: "Christmas Chr", weight: 2},
+    { word: "Christmas Chr", weight: 2},
+    { word: "Christmas Chr", weight: 2},
+    { word: "Christmas Chr", weight: 1},
+    { word: "Christmas Chr", weight: 1},
+    { word: "Christmas Chr", weight: 1}
+];
 
 class PerformanceDebugger {
 
@@ -532,11 +532,7 @@ class WordCloud {
 
       minArea += dimensions.width * dimensions.height;
     }
-    return {
-      minWidth: minWidth,
-      minHeight: minHeight,
-      minArea: minArea
-    };
+    return { minWidth, minHeight, minArea };
   }
 
   /**
@@ -563,10 +559,7 @@ class WordCloud {
         stackedMinWidth += dimensions.width;
       }
     }
-    return {
-      stackedMinWidth: stackedMinWidth,
-      stackedMinHeight: stackedMinHeight
-    };
+    return { stackedMinWidth, stackedMinHeight }
   }
 
   /**
@@ -604,10 +597,7 @@ class WordCloud {
       ({ stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(width, height));
     }
 
-    return {
-      width: width,
-      height: height
-    }
+    return { width, height }
   }
 
   async getImage() {
