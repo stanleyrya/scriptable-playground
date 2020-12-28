@@ -7,7 +7,7 @@
  */
 
 const growToFit = true;
-const debug = true;
+const debug = false;
 const minFont = 10;
 const maxFont = 60;
 const wordData = [
@@ -206,9 +206,9 @@ class WordCloud {
     this.xRatio = width / biggestSide;
     this.yRatio = height / biggestSide;
     // Controls density by changing how many lines make up a single rotation
-    this.partsPerCircle = 100 // 50
+    this.partsPerCircle = 50 // 50, 100
     // Controls density by changing the angle of the lines drawn
-    this.radiusIncrement = .1 // .75
+    this.radiusIncrement = .75 // .75, .1
     // Controls buffer around words and edge of canvas
     this.bufferRoom = 10;
   }
@@ -365,7 +365,7 @@ class WordCloud {
       };
     }
 
-    console.log("writing " + text);
+//     console.log("writing " + text);
     this.hitBoxes.push(rect);
 
     if (this.debug) {
@@ -462,7 +462,7 @@ class WordCloud {
   }
 
   async _writePendingWords() {
-    console.log("writing words that haven't been placed before to spiral");
+//     console.log("writing words that haven't been placed before to spiral");
     let placedAll = true;
     // this.wordDataToPlace is edited whenever a word is placed
     // To be safe, copy it locally first and use the copy
@@ -480,7 +480,7 @@ class WordCloud {
   }
 
   async _writeAlreadyPlacedWords() {
-    console.log("writing words that were already placed before");
+//     console.log("writing words that were already placed before");
     for (const placedWord of this.placedWords) {
       await this._addTextCentered(
         placedWord.xFromCenter + this.centerX,
@@ -762,13 +762,18 @@ async function createWidget(width, height) {
   return widget;
 }
 
-if (config.runsInWidget) {
-  const width = config.widgetFamily === "small" ? 250 : 530;
-  const height = config.widgetFamily === "large" ? 530 : 250;
-  const widget = await createWidget(width, height);
-  Script.setWidget(widget);
-  Script.complete();
-} else {
-  const widget = await createWidget(530, 530);
-  await widget.presentLarge();
+try {
+  if (config.runsInWidget) {
+    const width = config.widgetFamily === "small" ? 250 : 530;
+    const height = config.widgetFamily === "large" ? 530 : 250;
+    const widget = await createWidget(width, height);
+    Script.setWidget(widget);
+    Script.complete();
+  } else {
+    const widget = await createWidget(530, 250);
+    await widget.presentMedium();
+  }
+} catch (err) {
+  console.log(err);
+  throw err;
 }
