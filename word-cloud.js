@@ -7,7 +7,7 @@
  */
 
 const growToFit = true;
-const debug = false;
+const debug = true;
 const minFont = 10;
 const maxFont = 60;
 const wordData = [
@@ -321,6 +321,7 @@ class WordCloud {
       newRect.maxX > this.ctx.size.width - this.bufferRoom ||
       newRect.minY < 0 + this.bufferRoom ||
       newRect.maxY > this.ctx.size.height - this.bufferRoom) {
+//       console.log("outside borders!");
       return true;
     }
     return false;
