@@ -155,7 +155,10 @@ class WordCloudFont {
 }
 
 class WordCloudProcessedWord {
-  constructor({ wordCloudFont, fontSize, color }) {
+  constructor({ word, wordCloudFont, fontSize, color }) {
+    if (!word) {
+      throw ("word is required!");
+    }
     if (!wordCloudFont) {
       throw ("wordCloudFont is required!");
     }
@@ -168,6 +171,7 @@ class WordCloudProcessedWord {
     if (!color) {
       throw ("color is required!");
     }
+    this.word = word;
     this.wordCloudFont = wordCloudFont;
     this.fontSize = fontSize;
     this.color = color;
@@ -203,7 +207,7 @@ class WordCloud {
   constructor({
     width,
     height,
-    wordData,
+    wordCloudWords,
     weightFunction = this._defaultWeightFunction,
     growToFit = true,
     growthFunction = this._defaultGrowthFunction,
@@ -211,7 +215,7 @@ class WordCloud {
   }) {
     this.providedWidth = width;
     this.providedHeight = height;
-    this.wordData = wordData;
+    this.processedWords = wordCloudWords.map(wordCloudWord => this.weightFunction(wordCloudWord));
     this.weightFunction = weightFunction;
     this.growToFit = !!growToFit;
     this.growthFunction = growthFunction;
@@ -221,7 +225,7 @@ class WordCloud {
     this.loadedCssUrls = {};
     this.textDimensionsMap = {};
 
-    this.wordDataToPlace = [...wordData];
+    this.wordsToPlace = [...processedWords];
     this.placedWords = [];
 
     // Stretches the spiral
@@ -247,6 +251,7 @@ class WordCloud {
    */
   _defaultWeightFunction(wordCloudWord) {
     return new WordCloudProcessedWord({
+      word: wordCloudWord.word,
       wordCloudFont: new WordCloudFont({
         fontName: "TrebuchetMS-Bold"
       }),
@@ -459,7 +464,7 @@ class WordCloud {
     return Math.random() < 0.5 ? -1 : 1;
   }
 
-  async _writeToSpiral(wordCloudWord, shouldDraw) {
+  async _writeToSpiral(processedWord, shouldDraw) {
     let breachedLeft = false;
     let breachedRight = false;
     let breachedTop = false;
@@ -486,20 +491,20 @@ class WordCloud {
         continue;
       }
 
-      const { wordCloudFont, fontSize, color } = this.weightFunction(wordCloudWord);
+      const { word, wordCloudFont, fontSize, color } = processedWord;
       const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered(
-        x, y, wordCloudWord.word, wordCloudFont, fontSize, color, shouldDraw
+        x, y, word, wordCloudFont, fontSize, color, shouldDraw
       );
       if (textPlaced) {
         this.placedWords.push({
           xFromCenter: x - this.centerX,
           yFromCenter: y - this.centerY,
-          text: wordCloudWord.word,
+          text: word,
           wordCloudFont: wordCloudFont,
           fontSize: fontSize,
           color: color
         });
-        this.wordDataToPlace.shift();
+        this.wordsToPlace.shift();
         placed = true;
         break;
       }
@@ -532,11 +537,11 @@ class WordCloud {
 
   async _writePendingWords(shouldDraw) {
     let placedAll = true;
-    // this.wordDataToPlace is edited whenever a word is placed
+    // this.wordsToPlace is edited whenever a word is placed
     // To be safe, copy it locally first and use the copy
-    const copiedWordDataToPlace = [...this.wordDataToPlace];
-    for (const wordCloudWord of copiedWordDataToPlace) {
-      if (!(await this._writeToSpiral(wordCloudWord, shouldDraw))) {
+    const copiedWordsToPlace = [...this.wordsToPlace];
+    for (const processedWord of copiedWordsToPlace) {
+      if (!(await this._writeToSpiral(processedWord, shouldDraw))) {
         placedAll = false;
         // Stop trying to place words if growToFit
         if (this.growToFit) {
@@ -572,9 +577,9 @@ class WordCloud {
     let minWidth = 0;
     let minHeight = 0;
     let minArea = 0;
-    for (const wordCloudWord of this.wordData) {
-      const { wordCloudFont, fontSize, color } = this.weightFunction(wordCloudWord);
-      const dimensions = await this._getTextDimensions(wordCloudWord.word, wordCloudFont, fontSize);
+    for (const processedWord of this.processedWords) {
+      const { word, wordCloudFont, fontSize, color } = processedWord;
+      const dimensions = await this._getTextDimensions(word, wordCloudFont, fontSize);
 
       if (minWidth < dimensions.width) {
         minWidth = dimensions.width;
@@ -606,9 +611,9 @@ class WordCloud {
   async _getStackedMinDimensions(ctxWidth, ctxHeight) {
     let stackedMinHeight = 0;
     let stackedMinWidth = 0;
-    for (const wordCloudWord of this.wordData) {
-      const { wordCloudFont, fontSize, color } = this.weightFunction(wordCloudWord);
-      const dimensions = await this._getTextDimensions(wordCloudWord.word, wordCloudFont, fontSize);
+    for (const processedWord of this.processedWords) {
+      const { word, wordCloudFont, fontSize, color } = processedWord;
+      const dimensions = await this._getTextDimensions(word, wordCloudFont, fontSize);
 
       if (dimensions.width > ctxWidth / 2) {
         stackedMinHeight += dimensions.height;
@@ -739,6 +744,7 @@ class WordCloud {
 
 function simpleAndCleanWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
+    word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
       fontName: "TrebuchetMS-Bold"
     }),
@@ -763,6 +769,7 @@ function hackerWeightFunction(wordCloudWord) {
     Color.green().alpha * (wordCloudWord.weight / 10)
   );
   return new WordCloudProcessedWord({
+    word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
       fontName: "CourierNewPS-BoldMT"
     }),
@@ -788,6 +795,7 @@ function hackerWeightFunction(wordCloudWord) {
 // https://fonts.google.com/specimen/Lacquer
 function spookyWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
+    word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
       fontName: "Lacquer",
       cssUrl: "https://fonts.googleapis.com/css2?family=Lacquer&display=swap"
@@ -800,6 +808,7 @@ function spookyWeightFunction(wordCloudWord) {
 // https://fonts.google.com/specimen/Cinzel+Decorative
 function customFestiveWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
+    word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
       fontName: "Cinzel Decorative",
       cssUrl: "https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap"
@@ -812,6 +821,7 @@ function customFestiveWeightFunction(wordCloudWord) {
 // https://fonts.google.com/specimen/Fredericka+the+Great
 function stencilWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
+    word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
       fontName: "Fredericka the Great",
       cssUrl: "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
@@ -825,7 +835,7 @@ function stencilWeightFunction(wordCloudWord) {
  ***** WIDGET CONFIG *****
  *************************/
 
-const wordData = [
+const wordCloudWords = [
   new WordCloudWord({ word: "Christmas", weight: 10 }),
   new WordCloudWord({ word: "Snow", weight: 10 }),
   new WordCloudWord({ word: "Sleigh", weight: 8 }),
@@ -848,7 +858,7 @@ const wordData = [
   new WordCloudWord({ word: "Holly", weight: 1 }),
   new WordCloudWord({ word: "Jolly", weight: 1 })
 ];
-// const wordData = [
+// const wordCloudWords = [
 //   new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
 //   new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
 //   new WordCloudWord({ word: "Christmas Chr", weight: 8 }),
@@ -877,7 +887,7 @@ async function createWidget(width, height) {
   const wordCloud = new WordCloud({
     width,
     height,
-    wordData,
+    wordCloudWords,
     weightFunction: hackerWeightFunction,
     growToFit,
     growthFunction: undefined,
