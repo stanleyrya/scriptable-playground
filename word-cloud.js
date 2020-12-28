@@ -7,7 +7,7 @@
  */
 
 const growToFit = true;
-const debug = false;
+const debug = true;
 const minFont = 10;
 const maxFont = 60;
 
@@ -290,6 +290,8 @@ class WordCloud {
    *  - The font family being loaded.
    * @param {string} fontCssUrl
    *  - The css url that will be loaded.
+   * @return {Promise}
+   *  - A promise that the font was loaded.
    */
   _loadFontToWebView(fontFamily, fontCssUrl) {
     const html = `
@@ -305,7 +307,7 @@ class WordCloud {
       .replace("REPLACE_HREF", fontCssUrl)
       .replace("REPLACE_FONT_FAMILY", fontFamily);
 
-    this.webView.loadHTML(html);
+    return this.webView.loadHTML(html);
   }
 
   /**
@@ -921,7 +923,7 @@ async function createWidget(width, height) {
     width,
     height,
     wordCloudWords,
-    weightFunction: hackerWeightFunction,
+    weightFunction: stencilWeightFunction,
     growToFit,
     growthFunction: undefined,
     debug
