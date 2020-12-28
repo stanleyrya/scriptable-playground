@@ -184,13 +184,12 @@ class WordCloudFont {
 
 class WordCloud {
 
-  constructor(width, height, wordData, weightFunction, growToFit, debug) {
+  constructor(width, height, wordData, weightFunction, growthFunction, growToFit, debug) {
     this.providedWidth = width;
     this.providedHeight = height;
-    this.widthGrowthAmount = width * 0.1;
-    this.heightGrowthAmount = height * 0.1;
     this.wordData = wordData;
-    this.weightFunction = weightFunction;
+    this.weightFunction = weightFunction || this._defaultWeightFunction;
+    this.growthFunction = growthFunction || this._defaultGrowthFunction;
     this.growToFit = !!growToFit;
     this.debug = !!debug;
 
@@ -211,6 +210,23 @@ class WordCloud {
     this.radiusIncrement = .75 // .75, .1
     // Controls buffer around words and edge of canvas
     this.bufferRoom = 10;
+  }
+
+  _defaultWeightFunction(text, weight) {
+    return {
+      wordCloudFont: new WordCloudFont(
+        "TrebuchetMS-Bold"
+      ),
+      fontSize: (weight / 10) * (maxFont - minFont) + minFont,
+      color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
+    }
+  }
+
+  _defaultGrowthFunction(currentWidth, currentHeight, originalWidth, originalHeight) {
+    return {
+      width: currentWidth + currentWidth * 0.1,
+      height: currentHeight + currentHeight * 0.1
+    }
   }
 
   /**
@@ -365,7 +381,7 @@ class WordCloud {
       };
     }
 
-//     console.log("writing " + text);
+    //     console.log("writing " + text);
     this.hitBoxes.push(rect);
 
     if (this.debug) {
@@ -462,7 +478,7 @@ class WordCloud {
   }
 
   async _writePendingWords() {
-//     console.log("writing words that haven't been placed before to spiral");
+    //     console.log("writing words that haven't been placed before to spiral");
     let placedAll = true;
     // this.wordDataToPlace is edited whenever a word is placed
     // To be safe, copy it locally first and use the copy
@@ -480,7 +496,7 @@ class WordCloud {
   }
 
   async _writeAlreadyPlacedWords() {
-//     console.log("writing words that were already placed before");
+    //     console.log("writing words that were already placed before");
     for (const placedWord of this.placedWords) {
       await this._addTextCentered(
         placedWord.xFromCenter + this.centerX,
@@ -558,22 +574,20 @@ class WordCloud {
    * so it's preferred to run this function first.
    */
   async _preflightGrow(ctxWidth, ctxHeight) {
-    let newWidth = ctxWidth;
-    let newHeight = ctxHeight;
+    let width = ctxWidth;
+    let height = ctxHeight;
     const { minWidth, minHeight, minArea } = await this._getWordStats();
 
     // The biggest height and width of the words have to fit the DrawContext
-    while (minWidth > newWidth || minHeight > newHeight) {
-      newWidth += this.widthGrowthAmount;
-      newHeight += this.heightGrowthAmount;
+    while (minWidth > width || minHeight > height) {
       console.log("increasing because of min width or height");
+      ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
     }
 
     // The area of the words have to fit the area of the drawContext
-    while (minArea > (newWidth * newHeight)) {
-      newWidth += this.widthGrowthAmount;
-      newHeight += this.heightGrowthAmount;
+    while (minArea > (width * height)) {
       console.log("increasing because of min area");
+      ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
     }
 
     // All words that are more than half of the width can't be
@@ -581,25 +595,24 @@ class WordCloud {
     // and their combined height needs to be at least as long as
     // the draw context. The same can be said about words that are
     // larger than half of the height.
-    let { stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(newWidth, newHeight);
-    while (stackedMinWidth > newWidth || stackedMinHeight > newHeight) {
-      newWidth += this.widthGrowthAmount;
-      newHeight += this.heightGrowthAmount;
+    let { stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(width, height);
+    while (stackedMinWidth > width || stackedMinHeight > height) {
       console.log("increasing because of stacked width or height");
-      ({ stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(newWidth, newHeight));
+      ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
+      ({ stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(width, height));
     }
 
     return {
-      ctxWidth: newWidth,
-      ctxHeight: newHeight
+      width: width,
+      height: height
     }
   }
 
   async getImage() {
-    let ctxWidth = this.providedWidth;
-    let ctxHeight = this.providedHeight;
+    let width = this.providedWidth;
+    let height = this.providedHeight;
     if (this.growToFit) {
-      ({ ctxWidth, ctxHeight } = await deeperPerformanceDebugger.wrap(this._preflightGrow, [ctxWidth, ctxHeight], this));
+      ({ width, height } = await deeperPerformanceDebugger.wrap(this._preflightGrow, [width, height], this));
     }
 
     let placedAll = false;
@@ -607,9 +620,9 @@ class WordCloud {
     while (!placedAll) {
       this.ctx = new DrawContext();
       this.ctx.opaque = false;
-      this.ctx.size = new Size(ctxWidth, ctxHeight);
-      this.centerX = ctxWidth / 2;
-      this.centerY = ctxHeight / 2;
+      this.ctx.size = new Size(width, height);
+      this.centerX = width / 2;
+      this.centerY = height / 2;
       this.hitBoxes = [];
 
       await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [], this, "writeAlreadyPlacedWords-" + i);
@@ -620,9 +633,8 @@ class WordCloud {
       }
 
       if (!placedAll) {
-        ctxWidth += this.widthGrowthAmount;
-        ctxHeight += this.heightGrowthAmount;
         console.log("increasing because words couldn't fit area");
+        ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
       }
       i++;
     }
@@ -630,7 +642,7 @@ class WordCloud {
     if (this.debug) {
       this.ctx.setLineWidth(5);
       this.ctx.setStrokeColor(Color.red());
-      this.ctx.strokeRect(new Rect(0, 0, ctxWidth, ctxHeight));
+      this.ctx.strokeRect(new Rect(0, 0, width, height));
     }
 
     return this.ctx.getImage();
@@ -747,6 +759,7 @@ async function createWidget(width, height) {
     height,
     wordData,
     hackerWeightFunction,
+    undefined,
     growToFit,
     debug
   );
