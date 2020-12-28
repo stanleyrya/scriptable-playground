@@ -44,7 +44,7 @@ class PerformanceDebugger {
    * 3200, 312
    * 450, 300
    */
-  appendPerformanceDataToFile(relativePath) {
+  async appendPerformanceDataToFile(relativePath) {
     const fm = this.getFileManager();
     const metricsPath = this.getCurrentDir() + relativePath;
 
@@ -68,7 +68,7 @@ class PerformanceDebugger {
       console.log("File exists, reading headers. To keep things easy we're only going to write to these headers.");
 
       // Doesn't fail with local filesystem
-      fm.downloadFileFromiCloud(metricsPath);
+      await fm.downloadFileFromiCloud(metricsPath);
 
       fileData = fm.readString(metricsPath);
       const firstLine = this.getFirstLine(fileData);
@@ -196,7 +196,7 @@ class WordCloud {
    * Optional:
    *
    * @param {weightFunction} [weightFunction=this._defaultWeightFunction]
-   *   - The words that will be displayed on the canvas.
+   *   - A function that processes words before they are placed on the canvas.
    * @param {boolean} [growToFit=true]
    *   - A boolean that determines if the word cloud should expand the canvas to fit all of the provided words.
    * @param {growthFunction} [growthFunction=this._defaultGrowthFunction]
@@ -241,7 +241,8 @@ class WordCloud {
   }
 
   /**
-   * This is the default weight function that gets included with the WordCloud class.
+   * This is the default weight function that gets
+   * included with the WordCloud class.
    * Please use it as an example!
    *
    * @param {WordCloudWord} wordCloudWord
@@ -261,7 +262,8 @@ class WordCloud {
   }
 
   /**
-   * This is the default growth function that gets included with the WordCloud class.
+   * This is the default growth function that gets
+   * included with the WordCloud class.
    * Please use it as an example!
    *
    * @param {number} currentWidth
@@ -279,12 +281,15 @@ class WordCloud {
   }
 
   /**
-   * Uses Scriptable's WebView to load a custom font.  iOS custom fonts
-   * aren't loaded on the HTML document canvas so they have to be loaded
-   * using their css stylesheet.
+   * Uses Scriptable's WebView to load a custom font. 
+   * iOS custom fonts aren't loaded on the HTML
+   * document canvas so they have to be loaded using
+   * their css stylesheet.
    *
-   * @param {string} fontFamily - The font family being loaded.
-   * @param {string} fontCssUrl - The css url that will be loaded.
+   * @param {string} fontFamily
+   *  - The font family being loaded.
+   * @param {string} fontCssUrl
+   *  - The css url that will be loaded.
    */
   _loadFontToWebView(fontFamily, fontCssUrl) {
     const html = `
@@ -304,13 +309,15 @@ class WordCloud {
   }
 
   /**
-   * Uses Scriptable's WebView to call canvas.measureText on the
-   * given text of given font in pixels.
+   * Uses Scriptable's WebView to call
+   * canvas.measureText on the given text of given
+   * font in pixels.
    *
    * @param {string} text
    *  - The text to be rendered.
    * @param {string} font
-   *  - The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
+   *  - The css font descriptor that text is to be
+   *    rendered with (e.g. "bold 14px verdana").
    * @return { number, number } { width, height }
    *  - The width and height of the text.
    *
@@ -339,12 +346,15 @@ class WordCloud {
   }
 
   /**
-   * The Scriptable WebView can use the HTML document canvas to measure a word's
-   * width and height. It can't return an image file so the rest of the script
-   * uses the Scriptable DrawContext to create the image.
+   * The Scriptable WebView can use the HTML document
+   * canvas to measure a word's width and height. It
+   * can't return an image file so the rest of the
+   * script uses the Scriptable DrawContext to create
+   * the image.
    *
-   * Custom fonts aren't loaded on the HTML document canvas so they have to be
-   * loaded using their css stylesheet.
+   * Custom fonts aren't loaded on the HTML document
+   * canvas so they have to be loaded using their css
+   * stylesheet.
    */
   async _getTextDimensions(text, wordCloudFont, fontSize) {
     const cssFont = fontSize + "pt " + wordCloudFont.fontName;
@@ -353,8 +363,8 @@ class WordCloud {
     if (this.textDimensionsMap[key]) {
       return this.textDimensionsMap[key];
     } else {
-      // If we are using a custom font and it hasn't been loaded before,
-      // load it to the WebView.
+      // If we are using a custom font and it hasn't
+      // been loaded before, load it to the WebView.
       if (wordCloudFont.cssURL) {
         if (!this.loadedCssUrls[wordCloudFont.cssURL]) {
           await this._loadFontToWebView(wordCloudFont.fontName, wordCloudFont.cssURL);
@@ -538,8 +548,8 @@ class WordCloud {
 
   async _writePendingWords(shouldDraw) {
     let placedAll = true;
-    // this.wordsToPlace is edited whenever a word is placed
-    // To be safe, copy it locally first and use the copy
+    // this.wordsToPlace is edited as words are placed
+    // To be safe, copy it locally first
     const copiedWordsToPlace = [...this.wordsToPlace];
     for (const processedWord of copiedWordsToPlace) {
       if (!(await this._writeToSpiral(processedWord, shouldDraw))) {
@@ -566,11 +576,13 @@ class WordCloud {
   }
 
   /**
-   * Returns some statistics about the words provided so the DrawContext
-   * can be adjusted to fit them.
+   * Returns some statistics about the words provided
+   * so the DrawContext can be adjusted to fit them.
    *
-   * @return { number, number, number } { minWidth, minHeight, minArea }
-   *  - The minimum width, height, and area that the canvas needs to fit the words.
+   * @return { number, number, number }
+   *         { minWidth, minHeight, minArea }
+   *  - The minimum width, height, and area that the
+   *    canvas needs to fit the words.
    */
   async _getWordStats() {
     let minWidth = 0;
@@ -593,19 +605,27 @@ class WordCloud {
   }
 
   /**
-   * All words that are more than half of the width can't be
-   * placed next to each other. This means they have to be stacked
-   * and their combined height needs to be at least as long as
-   * the draw context. The same can be said about words that are
-   * larger than half of the height.
+   * All words that are more than half of the width
+   * can't be placed next to each other. This means
+   * they have to be stacked and their combined
+   * height needs to be at least as long as the draw
+   * context. The same can be said about words that
+   * are larger than half of the height.
    *
-   * Unlike the _getWordStats() function, this function will return
-   * a different result depending on the current width and height.
+   * Unlike the _getWordStats() function, this
+   * function will return a different result
+   * depending on the current width and height.
    *
-   * @param {number} ctxWidth - The width the words are being checked against.
-   * @param {number} ctxHeight - The height the words are being checked against.
-   * @return { number, number } { stackedMinWidth, stackedMinHeight }
-   *  - The minimum width and height the canvas needs to fit the words.
+   * @param {number} ctxWidth
+   *  - The width the words are being checked
+   *    against.
+   * @param {number} ctxHeight
+   *  - The height the words are being checked
+   *    against.
+   * @return { number, number }
+   *         { stackedMinWidth, stackedMinHeight }
+   *  - The minimum width and height the canvas needs
+   *    to fit the words.
    */
   async _getStackedMinDimensions(ctxWidth, ctxHeight) {
     let stackedMinHeight = 0;
@@ -625,13 +645,17 @@ class WordCloud {
   }
 
   /**
-   * Before words are placed on the spiral it's possible to grow the
-   * canvas using information we know about the words. This is faster
-   * than placing all of the words on the sprial and iterating so it's
-   * preferred to run this function first.
+   * Before words are placed on the spiral it's
+   * possible to grow the canvas using information
+   * we know about the words. This is faster than
+   * placing all of the words on the sprial and
+   * iterating so it's preferred to run this function
+   * first.
    *
-   * @param {number} ctxWidth - The current width of the canvas.
-   * @param {number} ctxHeight - The current height of the canvas.
+   * @param {number} ctxWidth
+   *  - The current width of the canvas.
+   * @param {number} ctxHeight
+   *  - The current height of the canvas.
    * @return { number, number } { width, height }
    *  - The new width and height for the canvas.
    */
@@ -640,23 +664,26 @@ class WordCloud {
     let height = ctxHeight;
     const { minWidth, minHeight, minArea } = await this._getWordStats();
 
-    // The biggest height and width of the words have to fit the DrawContext
+    // The biggest height and width of the words have
+    // to fit the DrawContext
     while (minWidth > width || minHeight > height) {
       console.log("increasing because of min width or height");
       ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
     }
 
-    // The area of the words have to fit the area of the drawContext
+    // The area of the words have to fit the area of
+    // the drawContext
     while (minArea > (width * height)) {
       console.log("increasing because of min area");
       ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
     }
 
-    // All words that are more than half of the width can't be
-    // placed next to each other. This means they have to be stacked
-    // and their combined height needs to be at least as long as
-    // the draw context. The same can be said about words that are
-    // larger than half of the height.
+    // All words that are more than half of the width
+    // can't be placed next to each other. This means
+    // they have to be stacked and their combined
+    // height needs to be at least as long as the
+    // draw context. The same can be said about words
+    // that are larger than half of the height.
     let { stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(width, height);
     while (stackedMinWidth > width || stackedMinHeight > height) {
       console.log("increasing because of stacked width or height");
@@ -668,19 +695,26 @@ class WordCloud {
   }
 
   /**
-   * If growToFit is true, the canvas will grow until all of the words
-   * fit on the canvas. This is done using the following algorithm:
+   * If growToFit is true, the canvas will grow until
+   * all of the words fit on the canvas. This is done
+   * using the following algorithm:
    *
-   * 1. "Preflight": The words are analyzed to see if the canvas needs
-   *    growing before anything is written to the canvas.
-   * 2. "Placement": The words are placed on the canvas until either:
-   *    A) a word can't be placed anymore or B) a word overlaps with
-   *    the outside of the canvas. We check for B so the result stays
-   *    "tight". Skipping this step usually results in "tall" word clouds.
-   * 3. "Grow and Repeat": The canvas is grown, the words that have
-   *    already been placed before are placed in their last positions,
-   *    and the "Placement" step starts over again. This repeats until
-   *    all of the words are placed on the canvas.
+   * 1. "Preflight": The words are analyzed to see
+   *    if the canvas needs growing before anything
+   *    is written to the canvas.
+   * 2. "Placement": The words are placed on the
+   *    canvas until either:
+   *    A) a word can't be placed anymore or
+   *    B) a word overlaps with the outside of the
+   *       canvas. We check for B so the result stays
+   *       "tight". Skipping this step usually
+   *       results in "tall" word clouds.
+   * 3. "Grow and Repeat": The canvas is grown, the
+   *    words that have already been placed before
+   *    are placed in their last positions, and the
+   *    "Placement" step starts over again. This
+   *    repeats until all of the words are placed on
+   *    the canvas.
    *
    * @return { Image } - The image of the WordCloud!
    */
@@ -894,8 +928,8 @@ async function createWidget(width, height) {
   });
   const image = await overallPerformanceDebugger.wrap(wordCloud.getImage, [], wordCloud);
 
-  overallPerformanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance-overview.csv");
-  deeperPerformanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance-deeper.csv");
+  await overallPerformanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance-overview.csv");
+  await deeperPerformanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance-deeper.csv");
 
   const widgetImage = widget.addImage(image);
   widgetImage.applyFillingContentMode();
