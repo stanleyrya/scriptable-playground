@@ -185,6 +185,8 @@ class WordCloud {
   constructor(width, height, wordData, weightFunction, growToFit, debug) {
     this.providedWidth = width;
     this.providedHeight = height;
+    this.widthGrowthAmount = width * 0.1;
+    this.heightGrowthAmount = height * 0.1;
     this.wordData = wordData;
     this.weightFunction = weightFunction;
     this.growToFit = !!growToFit;
@@ -435,7 +437,7 @@ class WordCloud {
     return placed;
   }
 
-  async _writeAllWordsToSpiral() {
+  async _writePendingWords() {
     console.log("writing all words to spiral")
     let placedAll = true;
     // this.wordDataToPlace is edited whenever a word is placed
@@ -451,6 +453,20 @@ class WordCloud {
       }
     }
     return placedAll;
+  }
+
+  async _writeAlreadyPlacedWords() {
+    console.log("writing words that were already placed before")
+    for (const placedWord of this.placedWords) {
+      await this._addTextCentered(
+        placedWord.xFromCenter + this.centerX,
+        placedWord.yFromCenter + this.centerY,
+        placedWord.text,
+        placedWord.wordCloudFont,
+        placedWord.fontSize,
+        placedWord.color
+      )
+    }
   }
 
   /**
@@ -528,15 +544,15 @@ class WordCloud {
 
     // The biggest height and width of the words have to fit the DrawContext
     while (minWidth > newWidth || minHeight > newHeight) {
-      newWidth = newWidth + (newWidth * 0.1);
-      newHeight = newHeight + (newHeight * 0.1);
+      newWidth += this.widthGrowthAmount;
+      newHeight += this.heightGrowthAmount;
       console.log("increasing because of min width or height");
     }
 
     // The area of the words have to fit the area of the drawContext
     while (minArea > (newWidth * newHeight)) {
-      newWidth = newWidth + (newWidth * 0.1);
-      newHeight = newHeight + (newHeight * 0.1);
+      newWidth += this.widthGrowthAmount;
+      newHeight += this.heightGrowthAmount;
       console.log("increasing because of min area");
     }
 
@@ -547,8 +563,8 @@ class WordCloud {
     // larger than half of the height.
     let { stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(newWidth, newHeight);
     while (stackedMinWidth > newWidth || stackedMinHeight > newHeight) {
-      newWidth = newWidth + (newWidth * 0.1);
-      newHeight = newHeight + (newHeight * 0.1);
+      newWidth += this.widthGrowthAmount;
+      newHeight += this.heightGrowthAmount;
       console.log("increasing because of stacked width or height");
       ({ stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(newWidth, newHeight));
     }
@@ -565,8 +581,6 @@ class WordCloud {
     if (this.growToFit) {
       ({ ctxWidth, ctxHeight } = await deeperPerformanceDebugger.wrap(this._preflightGrow, [ctxWidth, ctxHeight], this));
     }
-    console.log("ctxHeight:" + ctxHeight);
-    console.log("ctxWidth:" + ctxWidth);
 
     let placedAll = false;
     let i = 0;
@@ -578,26 +592,16 @@ class WordCloud {
       this.centerY = ctxHeight / 2;
       this.hitBoxes = [];
 
-      for (const placedWord of this.placedWords) {
-        await this._addTextCentered(
-          placedWord.xFromCenter + this.centerX,
-          placedWord.yFromCenter + this.centerY,
-          placedWord.text,
-          placedWord.wordCloudFont,
-          placedWord.fontSize,
-          placedWord.color
-        )
-      }
-
-      placedAll = await deeperPerformanceDebugger.wrap(this._writeAllWordsToSpiral, [], this, "writeAllWordsToSpiral-" + i);
+      await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [], this, "writeAlreadyPlacedWords-" + i);
+      placedAll = await deeperPerformanceDebugger.wrap(this._writePendingWords, [], this, "writePendingWords-" + i);
 
       if (!this.growToFit) {
         break;
       }
 
       if (!placedAll) {
-        ctxWidth = ctxWidth + (this.providedWidth * 0.1);
-        ctxHeight = ctxHeight + (this.providedHeight * 0.1);
+        ctxWidth += this.widthGrowthAmount;
+        ctxHeight += this.heightGrowthAmount;
         console.log("increasing because words couldn't fit area");
       }
       i++;
