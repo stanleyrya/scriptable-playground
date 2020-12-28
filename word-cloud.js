@@ -223,7 +223,7 @@ class WordCloud {
     this.processedWords = wordCloudWords.map(wordCloudWord => this.weightFunction(wordCloudWord));
     this.wordsToPlace = [...this.processedWords];
     this.placedWords = [];
-    
+
     this.webView = new WebView();
     this.loadedCssUrls = {};
     this.textDimensionsMap = {};
@@ -411,8 +411,9 @@ class WordCloud {
     return false;
   }
 
-  async _addTextCentered(x, y, text, wordCloudFont, fontSize, color, shouldDraw) {
-    const dimensions = await this._getTextDimensions(text, wordCloudFont, fontSize);
+  async _addTextCentered(x, y, processedWord, shouldDraw) {
+    const { word, wordCloudFont, fontSize, color } = processedWord;
+    const dimensions = await this._getTextDimensions(word, wordCloudFont, fontSize);
     const topLeftX = x - (dimensions.width / 2);
     const topLeftY = y - (dimensions.height / 2);
     const rect = new Rect(
@@ -491,18 +492,14 @@ class WordCloud {
         continue;
       }
 
-      const { word, wordCloudFont, fontSize, color } = processedWord;
       const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered(
-        x, y, word, wordCloudFont, fontSize, color, shouldDraw
+        x, y, processedWord, shouldDraw
       );
       if (textPlaced) {
         this.placedWords.push({
           xFromCenter: x - this.centerX,
           yFromCenter: y - this.centerY,
-          text: word,
-          wordCloudFont: wordCloudFont,
-          fontSize: fontSize,
-          color: color
+          processedWord
         });
         this.wordsToPlace.shift();
         placed = true;
@@ -557,10 +554,7 @@ class WordCloud {
       await this._addTextCentered(
         placedWord.xFromCenter + this.centerX,
         placedWord.yFromCenter + this.centerY,
-        placedWord.text,
-        placedWord.wordCloudFont,
-        placedWord.fontSize,
-        placedWord.color,
+        placedWord.processedWord,
         shouldDraw
       )
     }
