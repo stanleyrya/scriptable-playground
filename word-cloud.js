@@ -127,6 +127,8 @@ class PerformanceDebugger {
     for (const header of headers) {
       if (this.performanceResultsInMillis[header]) {
         fileData = fileData.concat(this.performanceResultsInMillis[header]);
+      } else {
+        fileData = fileData.concat(-1);
       }
       fileData = fileData.concat(",");
     }
@@ -438,7 +440,7 @@ class WordCloud {
   }
 
   async _writePendingWords() {
-    console.log("writing all words to spiral")
+    console.log("writing words that haven't been placed before to spiral");
     let placedAll = true;
     // this.wordDataToPlace is edited whenever a word is placed
     // To be safe, copy it locally first and use the copy
@@ -456,7 +458,7 @@ class WordCloud {
   }
 
   async _writeAlreadyPlacedWords() {
-    console.log("writing words that were already placed before")
+    console.log("writing words that were already placed before");
     for (const placedWord of this.placedWords) {
       await this._addTextCentered(
         placedWord.xFromCenter + this.centerX,
@@ -508,7 +510,6 @@ class WordCloud {
    * a different result depending on the current width and height.
    */
   async _getStackedMinDimensions(ctxWidth, ctxHeight) {
-    console.log("getting stacked")
     let stackedMinHeight = 0;
     let stackedMinWidth = 0;
     for (const wordDatum of this.wordData) {
@@ -516,15 +517,12 @@ class WordCloud {
       const dimensions = await this._getTextDimensions(wordDatum.word, wordCloudFont, fontSize);
 
       if (dimensions.width > ctxWidth / 2) {
-        console.log("width bigger than half")
         stackedMinHeight += dimensions.height;
       }
       if (dimensions.height > ctxHeight / 2) {
-        console.log("height bigger than half")
         stackedMinWidth += dimensions.width;
       }
     }
-    console.log("stacked min width: " + stackedMinWidth + " stacked min height: " + stackedMinHeight);
     return {
       stackedMinWidth: stackedMinWidth,
       stackedMinHeight: stackedMinHeight
