@@ -7,7 +7,7 @@
  */
 
 const growToFit = true;
-const debug = true;
+const debug = false;
 const minFont = 10;
 const maxFont = 60;
 
@@ -191,18 +191,26 @@ class WordCloud {
    * @param {number} height
    *   - The height of the canvas.
    * @param {WordCloudWord[]} wordData
-   *   - The words that will be displayed on the canvas.
+   *   - The words that will be displayed on the
+   *     canvas.
    *
    * Optional:
    *
-   * @param {weightFunction} [weightFunction=this._defaultWeightFunction]
-   *   - A function that processes words before they are placed on the canvas.
+   * @param {weightFunction}
+   *   [weightFunction=this._defaultWeightFunction]
+   *   - A function that processes words before they
+   *     are placed on the canvas.
    * @param {boolean} [growToFit=true]
-   *   - A boolean that determines if the word cloud should expand the canvas to fit all of the provided words.
-   * @param {growthFunction} [growthFunction=this._defaultGrowthFunction]
-   *   - A function that determines how the canvas should grow if growToFit is true.
+   *   - A boolean that determines if the word cloud
+   *     should expand the canvas to fit all of the
+   *     provided words.
+   * @param {growthFunction}
+   *   [growthFunction=this._defaultGrowthFunction]
+   *   - A function that determines how the canvas
+   *     should grow if growToFit is true.
    * @param {boolean} [debug=false]
-   *   - A boolean that writes additional context to the canvas for debugging.
+   *   - A boolean that writes additional context to
+   *     the canvas for debugging.
    */
   constructor({
     width,
@@ -227,17 +235,20 @@ class WordCloud {
     this.webView = new WebView();
     this.loadedCssUrls = {};
     this.textDimensionsMap = {};
+    
+    // Controls buffer around words and border
+    this.bufferRoom = 10;
 
     // Stretches the spiral
     const biggestSide = width > height ? width : height;
     this.xRatio = width / biggestSide;
     this.yRatio = height / biggestSide;
+
+    // Spiral-specific
     // Controls density by changing how many lines make up a single rotation
     this.partsPerCircle = 50 // 50, 100
     // Controls density by changing the angle of the lines drawn
     this.radiusIncrement = .75 // .75, .1
-    // Controls buffer around words and edge of canvas
-    this.bufferRoom = 10;
   }
 
   /**
