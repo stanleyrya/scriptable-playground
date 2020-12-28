@@ -215,18 +215,18 @@ class WordCloud {
   }) {
     this.providedWidth = width;
     this.providedHeight = height;
-    this.processedWords = wordCloudWords.map(wordCloudWord => this.weightFunction(wordCloudWord));
     this.weightFunction = weightFunction;
     this.growToFit = !!growToFit;
     this.growthFunction = growthFunction;
     this.debug = !!debug;
 
+    this.processedWords = wordCloudWords.map(wordCloudWord => this.weightFunction(wordCloudWord));
+    this.wordsToPlace = [...this.processedWords];
+    this.placedWords = [];
+    
     this.webView = new WebView();
     this.loadedCssUrls = {};
     this.textDimensionsMap = {};
-
-    this.wordsToPlace = [...processedWords];
-    this.placedWords = [];
 
     // Stretches the spiral
     const biggestSide = width > height ? width : height;
