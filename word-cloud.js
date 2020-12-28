@@ -295,7 +295,7 @@ class WordCloud {
       .replace("REPLACE_HREF", fontCssUrl)
       .replace("REPLACE_FONT_FAMILY", fontFamily);
 
-    return this.webView.loadHTML(html);
+    this.webView.loadHTML(html);
   }
 
   /**
@@ -330,7 +330,7 @@ class WordCloud {
       .replace("REPLACE_TEXT", text)
       .replace("REPLACE_FONT", cssFont);
 
-    this.webView.evaluateJavaScript(javascript);
+    return this.webView.evaluateJavaScript(javascript);
   }
 
   /**
@@ -535,8 +535,8 @@ class WordCloud {
     // this.wordDataToPlace is edited whenever a word is placed
     // To be safe, copy it locally first and use the copy
     const copiedWordDataToPlace = [...this.wordDataToPlace];
-    for (const wordDatum of copiedWordDataToPlace) {
-      if (!(await this._writeToSpiral(wordDatum.word, wordDatum.weight, shouldDraw))) {
+    for (const wordCloudWord of copiedWordDataToPlace) {
+      if (!(await this._writeToSpiral(wordCloudWord, shouldDraw))) {
         placedAll = false;
         // Stop trying to place words if growToFit
         if (this.growToFit) {
@@ -574,7 +574,7 @@ class WordCloud {
     let minArea = 0;
     for (const wordCloudWord of this.wordData) {
       const { wordCloudFont, fontSize, color } = this.weightFunction(wordCloudWord);
-      const dimensions = await this._getTextDimensions(wordDatum.word, wordCloudFont, fontSize);
+      const dimensions = await this._getTextDimensions(wordCloudWord.word, wordCloudFont, fontSize);
 
       if (minWidth < dimensions.width) {
         minWidth = dimensions.width;
@@ -608,7 +608,7 @@ class WordCloud {
     let stackedMinWidth = 0;
     for (const wordCloudWord of this.wordData) {
       const { wordCloudFont, fontSize, color } = this.weightFunction(wordCloudWord);
-      const dimensions = await this._getTextDimensions(wordDatum.word, wordCloudFont, fontSize);
+      const dimensions = await this._getTextDimensions(wordCloudWord.word, wordCloudFont, fontSize);
 
       if (dimensions.width > ctxWidth / 2) {
         stackedMinHeight += dimensions.height;
