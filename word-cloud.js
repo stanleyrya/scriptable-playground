@@ -352,14 +352,14 @@ class WordCloud {
 
     if (this._checkRectCollision(rect)) {
       return {
-        placed: false,
+        textPlaced: false,
         rectCollision: true,
         outsideBorders: false
       };
     }
     if (this._checkRectOutsideBorders(rect)) {
       return {
-        placed: false,
+        textPlaced: false,
         rectCollision: false,
         outsideBorders: true
       };
@@ -380,7 +380,7 @@ class WordCloud {
     this.ctx.setFont(new Font(wordCloudFont.fontName, fontSize));
     this.ctx.drawText(text, new Point(topLeftX, topLeftY - quarterHeight));
     return {
-      placed: true,
+      textPlaced: true,
       rectCollision: false,
       outsideBorders: false
     };
@@ -418,10 +418,10 @@ class WordCloud {
       }
 
       const { wordCloudFont, fontSize, color } = this.weightFunction(word, weight);
-      const { placed, rectCollision, outsideBorders } = await this._addTextCentered(
+      const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered(
         x, y, word, wordCloudFont, fontSize, color
       );
-      if (placed) {
+      if (textPlaced) {
         this.placedWords.push({
           xFromCenter: x - this.centerX,
           yFromCenter: y - this.centerY,
