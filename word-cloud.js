@@ -549,26 +549,28 @@ class WordCloud {
         continue;
       }
 
-      const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered({
-        x,
-        y,
-        processedWord,
-        shouldDraw,
-        checkHitboxes: true
-      });
-      if (textPlaced) {
-        this.placedWords.push({
-          xFromCenter: x - this.centerX,
-          yFromCenter: y - this.centerY,
-          processedWord
+      if (processedWord) {
+        const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered({
+          x,
+          y,
+          processedWord,
+          shouldDraw,
+          checkHitboxes: true
         });
-        this.wordsToPlace.shift();
-        placed = true;
-        break;
-      }
-      // If we're growing to fit, break out so the word cloud is tightly packed
-      if (outsideBorders && this.growToFit) {
-        break;
+        if (textPlaced) {
+          this.placedWords.push({
+            xFromCenter: x - this.centerX,
+            yFromCenter: y - this.centerY,
+            processedWord
+          });
+          this.wordsToPlace.shift();
+          placed = true;
+          break;
+        }
+        // If we're growing to fit, break out so the word cloud is tightly packed
+        if (outsideBorders && this.growToFit) {
+          break;
+        }
       }
 
       if (x < 0) {
@@ -585,7 +587,7 @@ class WordCloud {
       }
     }
     if (this.debug && shouldDraw) {
-      this.ctx.setLineWidth(.1);
+      this.ctx.setLineWidth(.5);
       this.ctx.addPath(path);
       this.ctx.setStrokeColor(Color.cyan());
       this.ctx.strokePath();
@@ -806,6 +808,7 @@ class WordCloud {
       this.ctx.setLineWidth(5);
       this.ctx.setStrokeColor(Color.red());
       this.ctx.strokeRect(new Rect(0, 0, width, height));
+      await this._writeToSpiral(null, true);
     }
 
     return this.ctx.getImage();
