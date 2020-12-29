@@ -7,7 +7,7 @@
  */
 
 const growToFit = true;
-const debug = false;
+const debug = true;
 const minFont = 10;
 const maxFont = 60;
 
@@ -217,12 +217,14 @@ class WordCloud {
     height,
     wordCloudWords,
     weightFunction = this._defaultWeightFunction,
+    placementFunction = this._defaultPlacementFunction,
     growToFit = true,
     growthFunction = this._defaultGrowthFunction,
     debug = false
   }) {
     this.providedWidth = width;
     this.providedHeight = height;
+    this.placementFunction = placementFunction;
     this.weightFunction = weightFunction;
     this.growToFit = !!growToFit;
     this.growthFunction = growthFunction;
@@ -239,16 +241,10 @@ class WordCloud {
     // Controls buffer around words and border
     this.bufferRoom = 10;
 
-    // Stretches the spiral
+    // Can be used to stretch the placementFunction
     const biggestSide = width > height ? width : height;
     this.xRatio = width / biggestSide;
     this.yRatio = height / biggestSide;
-
-    // Spiral-specific
-    // Controls density by changing how many lines make up a single rotation
-    this.partsPerCircle = 50 // 50, 100
-    // Controls density by changing the angle of the lines drawn
-    this.radiusIncrement = .75 // .75, .1
   }
 
   /**
@@ -289,6 +285,44 @@ class WordCloud {
       width: currentWidth + currentWidth * 0.1,
       height: currentHeight + currentHeight * 0.1
     }
+  }
+  
+  /**
+   * This is the default placement function that gets
+   * included with the WordCloud class.
+   * Please use it as an example!
+   *
+   * @param {number} width
+   * @param {number} height
+   * @param {number} centerX
+   * @param {number} centerY
+   * @param {number} xRatio - Useful for scaling.
+   * @param {number} yRatio - Useful for scaling.
+   * @param {Object} previousResult
+   *  - The previously returned object. Useful to
+   *    store state.
+   * @return { number, number, ... } { x, y, ... }
+   *  - The new x and y after processing. Return
+   *    any other information you may find useful!
+   */
+  _defaultPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+  let radius, radiusDirection, angle, angleDirection;
+  if (previousResult) {
+    ({ radius, radiusDirection,
+       angle, angleDirection } = previousResult);
+      // 0.1, 100
+      radius += .75 * radiusDirection;
+      angle += (Math.PI*2)/50 * angleDirection;
+  } else {
+    radius = 0;
+    angle = 0;
+    radiusDirection = Math.random() < 0.5 ? -1 : 1;
+    angleDirection = Math.random() < 0.5 ? -1 : 1;
+  }
+
+    const x = centerX + radius * Math.cos(angle) * xRatio;
+    const y = centerY + radius * Math.sin(angle) * yRatio;
+    return { x, y, radius, angle, radiusDirection, angleDirection }
   }
 
   /**
@@ -484,29 +518,29 @@ class WordCloud {
     };
   }
 
-  _getRandomDirection() {
-    return Math.random() < 0.5 ? -1 : 1;
-  }
-
   async _writeToSpiral(processedWord, shouldDraw) {
     let breachedLeft = false;
     let breachedRight = false;
     let breachedTop = false;
     let breachedBottom = false;
-    let radius = 0;
-    let angle = 0;
-    let radiusDirection = this._getRandomDirection();
-    let angleDirection = this._getRandomDirection();
+    let previousResult, x, y;
 
     const path = new Path();
     path.move(new Point(this.centerX, this.centerY));
 
     let placed = false;
     while (!(breachedLeft && breachedRight && breachedTop && breachedBottom)) {
-      radius += this.radiusIncrement * angleDirection;
-      angle += (Math.PI * 2) / this.partsPerCircle * radiusDirection;
-      let x = this.centerX + radius * Math.cos(angle) * this.xRatio;
-      let y = this.centerY + radius * Math.sin(angle) * this.yRatio;
+      previousResult = this.placementFunction(
+        this.width,
+        this.height,
+        this.centerX,
+        this.centerY,
+        this.xRatio,
+        this.yRatio,
+        previousResult
+      );
+      ({ x, y } = previousResult);
+
       if (this.debug && shouldDraw) {
         path.addLine(new Point(x, y));
       }
@@ -560,6 +594,7 @@ class WordCloud {
   }
 
   async _writePendingWords(shouldDraw) {
+    console.log("writing pending words");
     let placedAll = true;
     // this.wordsToPlace is edited as words are placed
     // To be safe, copy it locally first
@@ -577,6 +612,7 @@ class WordCloud {
   }
 
   async _writeAlreadyPlacedWords(shouldDraw) {
+    console.log("writing already placed words");
     for (const placedWord of this.placedWords) {
       await this._addTextCentered({
         x: placedWord.xFromCenter + this.centerX,
@@ -925,6 +961,17 @@ const wordCloudWords = [
 //   new WordCloudWord({ word: "Christmas Chr", weight: 1 })
 // ];
 
+  function testPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+    const i = previousResult ? previousResult.i + 1 : 0;
+    const scale = 2;
+    const dots = 10;
+    const range = 234;
+    const angle=Math.PI*range/centerX*i;
+    const x = scale * angle * Math.cos(dots*angle) + centerX;
+    const y = scale * angle * Math.sin(dots*angle) + centerY;
+    return { x, y, angle, i }
+  }
+
 async function createWidget(width, height) {
   let widget = new ListWidget();
   widget.setPadding(0, 0, 0, 0);
@@ -934,7 +981,8 @@ async function createWidget(width, height) {
     width,
     height,
     wordCloudWords,
-    weightFunction: stencilWeightFunction,
+    weightFunction: customFestiveWeightFunction,
+    placementFunction: testPlacementFunction,
     growToFit,
     growthFunction: undefined,
     debug
