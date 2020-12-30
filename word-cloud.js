@@ -7,7 +7,7 @@
  */
 
 const growToFit = true;
-const debug = true;
+const debug = false;
 const minFont = 10;
 const maxFont = 60;
 
@@ -969,7 +969,7 @@ const wordCloudWords = [
     const scale = 2;
     const dots = 10;
     const range = 234;
-    const angle=Math.PI*range/centerX*i;
+    const angle=Math.PI*range/500*i;
     const x = scale * angle * Math.cos(dots*angle) + centerX;
     const y = scale * angle * Math.sin(dots*angle) + centerY;
     return { x, y, angle, i }
@@ -984,7 +984,7 @@ async function createWidget(width, height) {
     width,
     height,
     wordCloudWords,
-    weightFunction: customFestiveWeightFunction,
+//     weightFunction: hackerWeightFunction,
     placementFunction: testPlacementFunction,
     growToFit,
     growthFunction: undefined,
