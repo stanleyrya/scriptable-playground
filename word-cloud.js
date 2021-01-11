@@ -237,7 +237,7 @@ class WordCloud {
     this.webView = new WebView();
     this.loadedCssUrls = {};
     this.textDimensionsMap = {};
-    
+
     // Controls buffer around words and border
     this.bufferRoom = 10;
 
@@ -286,7 +286,7 @@ class WordCloud {
       height: currentHeight + currentHeight * 0.1
     }
   }
-  
+
   /**
    * This is the default placement function that gets
    * included with the WordCloud class.
@@ -306,19 +306,23 @@ class WordCloud {
    *    any other information you may find useful!
    */
   _defaultPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
-  let radius, radiusDirection, angle, angleDirection;
-  if (previousResult) {
-    ({ radius, radiusDirection,
-       angle, angleDirection } = previousResult);
+    let radius, radiusDirection, angle, angleDirection;
+    if (previousResult) {
+      ({
+        radius,
+        radiusDirection,
+        angle,
+        angleDirection
+      } = previousResult);
       // 0.1, 100
       radius += .75 * radiusDirection;
-      angle += (Math.PI*2)/50 * angleDirection;
-  } else {
-    radius = 0;
-    angle = 0;
-    radiusDirection = Math.random() < 0.5 ? -1 : 1;
-    angleDirection = Math.random() < 0.5 ? -1 : 1;
-  }
+      angle += (Math.PI * 2) / 50 * angleDirection;
+    } else {
+      radius = 0;
+      angle = 0;
+      radiusDirection = Math.random() < 0.5 ? -1 : 1;
+      angleDirection = Math.random() < 0.5 ? -1 : 1;
+    }
 
     const x = centerX + radius * Math.cos(angle) * xRatio;
     const y = centerY + radius * Math.sin(angle) * yRatio;
@@ -326,7 +330,7 @@ class WordCloud {
   }
 
   /**
-   * Uses Scriptable's WebView to load a custom font. 
+   * Uses Scriptable's WebView to load a custom font.
    * iOS custom fonts aren't loaded on the HTML
    * document canvas so they have to be loaded using
    * their css stylesheet.
@@ -468,7 +472,7 @@ class WordCloud {
     return false;
   }
 
-  async _addTextCentered({x, y, processedWord, shouldDraw, checkHitboxes}) {
+  async _addTextCentered({ x, y, processedWord, shouldDraw, checkHitboxes }) {
     const { word, wordCloudFont, fontSize, color } = processedWord;
     const dimensions = await this._getTextDimensions(word, wordCloudFont, fontSize);
     const topLeftX = x - (dimensions.width / 2);
@@ -964,29 +968,29 @@ const wordCloudWords = [
 //   new WordCloudWord({ word: "Christmas Chr", weight: 1 })
 // ];
 
-  function testPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
-    const i = previousResult ? previousResult.i + 1 : 0;
-    const scale = 2;
-    const dots = 10;
-    const range = 234;
-    const angle=Math.PI*range/500*i;
-    const x = scale * angle * Math.cos(dots*angle) + centerX;
-    const y = scale * angle * Math.sin(dots*angle) + centerY;
-    return { x, y, angle, i }
-  }
+function testPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+  const i = previousResult ? previousResult.i + 1 : 0;
+  const scale = 2;
+  const dots = 10;
+  const range = 234;
+  const angle = Math.PI * range / 500 * i;
+  const x = scale * angle * Math.cos(dots * angle) + centerX;
+  const y = scale * angle * Math.sin(dots * angle) + centerY;
+  return { x, y, angle, i }
+}
 
-function  star(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
-    let i = previousResult ?
-      previousResult.i + 1 :
-      0;
-    const scale = .25;
-    const dots = 100;
-    const range = 336;
-    const angle=Math.PI*range/500*i;
-    const x = scale * angle * Math.cos(dots*angle) + centerX;
-    const y = scale * angle * Math.sin(dots*angle) + centerY;
-    return { x, y, angle, i }
-  }
+function star(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+  let i = previousResult ?
+    previousResult.i + 1 :
+    0;
+  const scale = .25;
+  const dots = 100;
+  const range = 336;
+  const angle = Math.PI * range / 500 * i;
+  const x = scale * angle * Math.cos(dots * angle) + centerX;
+  const y = scale * angle * Math.sin(dots * angle) + centerY;
+  return { x, y, angle, i }
+}
 
 async function createWidget(width, height) {
   let widget = new ListWidget();
@@ -997,7 +1001,7 @@ async function createWidget(width, height) {
     width,
     height,
     wordCloudWords,
-//     weightFunction: hackerWeightFunction,
+    //     weightFunction: hackerWeightFunction,
     placementFunction: star,
     growToFit,
     growthFunction: undefined,
