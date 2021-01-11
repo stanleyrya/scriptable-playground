@@ -118,6 +118,9 @@ class PerformanceDebugger {
 const overallPerformanceDebugger = new PerformanceDebugger();
 const deeperPerformanceDebugger = new PerformanceDebugger();
 
+/**
+ * A word that can be used by the WordCloud.
+ */
 class WordCloudWord {
   constructor({ word, weight }) {
     if (!word) {
@@ -132,6 +135,8 @@ class WordCloudWord {
 }
 
 /**
+ * A font that can be used in a WordCloud.
+ *
  * Please note that pre-installed fonts need to use
  * the name provieded here: http://iosfonts.com
  * For example: TrebuchetMS-Bold
@@ -154,6 +159,11 @@ class WordCloudFont {
   }
 }
 
+/**
+ * A word after processing from a weight function.
+ * All weight functions, including the default, must
+ * return WordCloudProcessedWords.
+ */
 class WordCloudProcessedWord {
   constructor({ word, wordCloudFont, fontSize, color }) {
     if (!word) {
@@ -200,6 +210,10 @@ class WordCloud {
    *   [weightFunction=this._defaultWeightFunction]
    *   - A function that processes words before they
    *     are placed on the canvas.
+   * @param {placementFunction}
+   *   [placementFunction=this._defaultPlacementFunction]
+   *   - A function that decides where the next word
+   *     should attempt to be placed.
    * @param {boolean} [growToFit=true]
    *   - A boolean that determines if the word cloud
    *     should expand the canvas to fit all of the
@@ -269,25 +283,6 @@ class WordCloud {
   }
 
   /**
-   * This is the default growth function that gets
-   * included with the WordCloud class.
-   * Please use it as an example!
-   *
-   * @param {number} currentWidth
-   * @param {number} currentHeight
-   * @param {number} originalWidth
-   * @param {number} originalHeight
-   * @return { number, number } { width, height }
-   *   - The new width and height after processing.
-   */
-  _defaultGrowthFunction(currentWidth, currentHeight, originalWidth, originalHeight) {
-    return {
-      width: currentWidth + currentWidth * 0.1,
-      height: currentHeight + currentHeight * 0.1
-    }
-  }
-
-  /**
    * This is the default placement function that gets
    * included with the WordCloud class.
    * Please use it as an example!
@@ -314,7 +309,7 @@ class WordCloud {
         angle,
         angleDirection
       } = previousResult);
-      // 0.1, 100
+      // Try these values too: 0.75 -> 0.1, 50 -> 100
       radius += .75 * radiusDirection;
       angle += (Math.PI * 2) / 50 * angleDirection;
     } else {
@@ -327,6 +322,25 @@ class WordCloud {
     const x = centerX + radius * Math.cos(angle) * xRatio;
     const y = centerY + radius * Math.sin(angle) * yRatio;
     return { x, y, radius, angle, radiusDirection, angleDirection }
+  }
+
+  /**
+   * This is the default growth function that gets
+   * included with the WordCloud class.
+   * Please use it as an example!
+   *
+   * @param {number} currentWidth
+   * @param {number} currentHeight
+   * @param {number} originalWidth
+   * @param {number} originalHeight
+   * @return { number, number } { width, height }
+   *   - The new width and height after processing.
+   */
+  _defaultGrowthFunction(currentWidth, currentHeight, originalWidth, originalHeight) {
+    return {
+      width: currentWidth + currentWidth * 0.1,
+      height: currentHeight + currentHeight * 0.1
+    }
   }
 
   /**
@@ -430,6 +444,9 @@ class WordCloud {
   }
 
   /**
+   * Does the new rectangle hit any of the
+   * existing ones?
+   *
    * if (RectA.Left < RectB.Right &&
    *     RectA.Right > RectB.Left &&
    *     RectA.Top < RectB.Bottom &&
@@ -449,6 +466,10 @@ class WordCloud {
     return false;
   }
 
+  /**
+   * Does the new rectangle hit any of the
+   * sides?
+   */
   _checkRectOutsideBorders(newRect) {
     if (newRect.minX < 0 + this.bufferRoom ||
       newRect.maxX > this.width - this.bufferRoom ||
@@ -460,6 +481,10 @@ class WordCloud {
     return false;
   }
 
+  /**
+   * Does the point hit any of the existing
+   * rectangles?
+   */
   _checkPointCollision(x, y) {
     for (const placedRect of this.hitBoxes) {
       if (x < placedRect.maxX + this.bufferRoom &&
@@ -499,7 +524,9 @@ class WordCloud {
       };
     }
 
-    console.log("writing " + word);
+    if (this.debug) {
+      console.log("writing " + word);
+    }
     this.hitBoxes.push(rect);
 
     if (shouldDraw) {
@@ -522,7 +549,7 @@ class WordCloud {
     };
   }
 
-  async _writeToSpiral(processedWord, shouldDraw) {
+  async _writeWithPlacementFunction(processedWord, shouldDraw) {
     let breachedLeft = false;
     let breachedRight = false;
     let breachedTop = false;
@@ -600,13 +627,15 @@ class WordCloud {
   }
 
   async _writePendingWords(shouldDraw) {
-    console.log("writing pending words");
+    if (this.debug) {
+      console.log("writing pending words");
+    }
     let placedAll = true;
     // this.wordsToPlace is edited as words are placed
     // To be safe, copy it locally first
     const copiedWordsToPlace = [...this.wordsToPlace];
     for (const processedWord of copiedWordsToPlace) {
-      if (!(await this._writeToSpiral(processedWord, shouldDraw))) {
+      if (!(await this._writeWithPlacementFunction(processedWord, shouldDraw))) {
         placedAll = false;
         // Stop trying to place words if growToFit
         if (this.growToFit) {
@@ -618,7 +647,9 @@ class WordCloud {
   }
 
   async _writeAlreadyPlacedWords(shouldDraw) {
-    console.log("writing already placed words");
+    if (this.debug) {
+      console.log("writing already placed words");
+    }
     for (const placedWord of this.placedWords) {
       await this._addTextCentered({
         x: placedWord.xFromCenter + this.centerX,
@@ -808,11 +839,13 @@ class WordCloud {
     this.ctx.size = new Size(width, height);
     await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [true], this, "writeAlreadyPlacedWords-" + i);
 
+    // If debug is on, run the placement function one
+    // last time to display how the function works.
     if (this.debug) {
       this.ctx.setLineWidth(5);
       this.ctx.setStrokeColor(Color.red());
       this.ctx.strokeRect(new Rect(0, 0, width, height));
-      await this._writeToSpiral(null, true);
+      await this._writeWithPlacementFunction(null, true);
     }
 
     return this.ctx.getImage();
@@ -920,9 +953,38 @@ function stencilWeightFunction(wordCloudWord) {
   });
 }
 
-/*************************
- ***** WIDGET CONFIG *****
- *************************/
+/*******************************
+ ***** PLACEMENT FUNCTIONS *****
+ *******************************/
+
+function testPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+  const i = previousResult ? previousResult.i + 1 : 0;
+  const scale = 2;
+  const dots = 10;
+  const range = 234;
+  const angle = Math.PI * range / 500 * i;
+  const x = scale * angle * Math.cos(dots * angle) + centerX;
+  const y = scale * angle * Math.sin(dots * angle) + centerY;
+  return { x, y, angle, i }
+}
+
+function star(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+  let i = previousResult ?
+    previousResult.i + 1 :
+    0;
+  const scale = .25;
+  const dots = 100;
+  const range = 336;
+  const angle = Math.PI * range / 500 * i;
+  const x = scale * angle * Math.cos(dots * angle) + centerX;
+  const y = scale * angle * Math.sin(dots * angle) + centerY;
+  return { x, y, angle, i }
+}
+
+
+/*****************
+ ***** WORDS *****
+ *****************/
 
 const wordCloudWords = [
   new WordCloudWord({ word: "Christmas", weight: 10 }),
@@ -968,29 +1030,9 @@ const wordCloudWords = [
 //   new WordCloudWord({ word: "Christmas Chr", weight: 1 })
 // ];
 
-function testPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
-  const i = previousResult ? previousResult.i + 1 : 0;
-  const scale = 2;
-  const dots = 10;
-  const range = 234;
-  const angle = Math.PI * range / 500 * i;
-  const x = scale * angle * Math.cos(dots * angle) + centerX;
-  const y = scale * angle * Math.sin(dots * angle) + centerY;
-  return { x, y, angle, i }
-}
-
-function star(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
-  let i = previousResult ?
-    previousResult.i + 1 :
-    0;
-  const scale = .25;
-  const dots = 100;
-  const range = 336;
-  const angle = Math.PI * range / 500 * i;
-  const x = scale * angle * Math.cos(dots * angle) + centerX;
-  const y = scale * angle * Math.sin(dots * angle) + centerY;
-  return { x, y, angle, i }
-}
+/*************************
+ ***** WIDGET CONFIG *****
+ *************************/
 
 async function createWidget(width, height) {
   let widget = new ListWidget();
