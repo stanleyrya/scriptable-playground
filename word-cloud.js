@@ -975,6 +975,19 @@ const wordCloudWords = [
     return { x, y, angle, i }
   }
 
+function  star(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+    let i = previousResult ?
+      previousResult.i + 1 :
+      0;
+    const scale = .25;
+    const dots = 100;
+    const range = 336;
+    const angle=Math.PI*range/500*i;
+    const x = scale * angle * Math.cos(dots*angle) + centerX;
+    const y = scale * angle * Math.sin(dots*angle) + centerY;
+    return { x, y, angle, i }
+  }
+
 async function createWidget(width, height) {
   let widget = new ListWidget();
   widget.setPadding(0, 0, 0, 0);
@@ -985,7 +998,7 @@ async function createWidget(width, height) {
     height,
     wordCloudWords,
 //     weightFunction: hackerWeightFunction,
-    placementFunction: testPlacementFunction,
+    placementFunction: star,
     growToFit,
     growthFunction: undefined,
     debug
