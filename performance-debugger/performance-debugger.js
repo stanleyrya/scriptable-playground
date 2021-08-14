@@ -28,11 +28,12 @@ class PerformanceDebugger {
 	 * Here's an example of what the performanceResultsInMillis would look like after those two function calls:
 	 * { "getCurrentLocation": 3200, "getNearbyWikiArticles": 312 }
 	 */
-	async wrap(fn, args) {
+	async wrap(fn, args, customName) {
 		const start = Date.now();
 		const result = await fn.apply(null, args);
 		const end = Date.now();
-		this.performanceResultsInMillis[fn.name] = (end - start);
+		const name = customName || fn.name;
+		this.performanceResultsInMillis[name] = (end - start);
 		return result;
 	}
 
@@ -44,7 +45,7 @@ class PerformanceDebugger {
 	 * 3200, 312
 	 * 450, 300
 	 */
-	appendPerformanceDataToFile(relativePath) {
+	async appendPerformanceDataToFile(relativePath) {
 		const fm = this.getFileManager();
 		const metricsPath = this.getCurrentDir() + relativePath;
 
@@ -68,7 +69,7 @@ class PerformanceDebugger {
 			console.log("File exists, reading headers. To keep things easy we're only going to write to these headers.");
 
 			// Doesn't fail with local filesystem
-			fm.downloadFileFromiCloud(metricsPath);
+			await fm.downloadFileFromiCloud(metricsPath);
 
 			fileData = fm.readString(metricsPath);
 			const firstLine = this.getFirstLine(fileData);
@@ -124,7 +125,7 @@ function testFunction2(arg1) {
 
 const performanceDebugger = new PerformanceDebugger();
 
-await performanceDebugger.wrap(testFunction1);
+await performanceDebugger.wrap(testFunction1, null, "test-1");
 await performanceDebugger.wrap(testFunction2, ["hello"]);
 
-performanceDebugger.appendPerformanceDataToFile("storage/test-performance-metrics.csv");
+await performanceDebugger.appendPerformanceDataToFile("storage/test-performance-metrics.csv");
