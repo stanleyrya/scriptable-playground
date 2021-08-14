@@ -7,116 +7,9 @@
  */
 
 const growToFit = true;
-const debug = false;
+const debug = true;
 const minFont = 10;
 const maxFont = 60;
-
-class PerformanceDebugger {
-
-  constructor() {
-    this.performanceResultsInMillis = {};
-  }
-
-  /**
-   * Times a function's execution in milliseconds and stores the results in the performanceResultsInMillis object.
-   *
-   * Here are two examples on how to use it, one without parameters and one with:
-   * let currLocation = await performanceWrapper(getCurrentLocation);
-   * let wikiArticles = await performanceWrapper(getNearbyWikiArticles, [currLocation.latitude, currLocation.longitude]);
-   *
-   * Here's an example of what the performanceResultsInMillis would look like after those two function calls:
-   * { "getCurrentLocation": 3200, "getNearbyWikiArticles": 312 }
-   */
-  async wrap(fn, args, context, customName) {
-    const start = Date.now();
-    const result = await fn.apply(context, args);
-    const end = Date.now();
-    const name = customName || fn.name;
-    this.performanceResultsInMillis[name] = (end - start);
-    return result;
-  }
-
-  /**
-   * Attempts to write the performanceResultsInMillis object to the relative file path.
-   *
-   * Example file output looks like this:
-   * getCurrentLocation, getNearbyWikiArticles
-   * 3200, 312
-   * 450, 300
-   */
-  async appendPerformanceDataToFile(relativePath) {
-    const fm = this.getFileManager();
-    const metricsPath = this.getCurrentDir() + relativePath;
-
-    const splitRelativePath = relativePath.split("/");
-    if (splitRelativePath > 1) {
-      const fileName = splitRelativePath[splitRelativePath.length - 1];
-      const jsonDirectory = metricsPath.replace("/" + fileName, "");
-      fm.createDirectory(jsonDirectory, true);
-    }
-
-    if (fm.fileExists(metricsPath) && fm.isDirectory(metricsPath)) {
-      throw ("Performance file is a directory, please delete!");
-    }
-
-    let headersAvailable = Object.getOwnPropertyNames(this.performanceResultsInMillis);
-
-    let headers;
-    let fileData;
-
-    if (fm.fileExists(metricsPath)) {
-      console.log("File exists, reading headers. To keep things easy we're only going to write to these headers.");
-
-      // Doesn't fail with local filesystem
-      await fm.downloadFileFromiCloud(metricsPath);
-
-      fileData = fm.readString(metricsPath);
-      const firstLine = this.getFirstLine(fileData);
-      headers = firstLine.split(',');
-    } else {
-      console.log("File doesn't exist, using available headers.");
-      headers = headersAvailable;
-      fileData = headers.toString();
-    }
-
-    // Append the data if it exists for the available headers
-    fileData = fileData.concat("\n");
-    for (const header of headers) {
-      if (this.performanceResultsInMillis[header]) {
-        fileData = fileData.concat(this.performanceResultsInMillis[header]);
-      } else {
-        fileData = fileData.concat(-1);
-      }
-      fileData = fileData.concat(",");
-    }
-    fileData = fileData.slice(0, -1);
-
-    fm.writeString(metricsPath, fileData);
-  }
-
-  getFirstLine(text) {
-    var index = text.indexOf("\n");
-    if (index === -1) index = undefined;
-    return text.substring(0, index);
-  }
-
-  getFileManager() {
-    try {
-      return FileManager.iCloud();
-    } catch (e) {
-      return FileManager.local();
-    }
-  }
-
-  getCurrentDir() {
-    const fm = this.getFileManager();
-    const thisScriptPath = module.filename;
-    return thisScriptPath.replace(fm.fileName(thisScriptPath, true), '');
-  }
-
-}
-const overallPerformanceDebugger = new PerformanceDebugger();
-const deeperPerformanceDebugger = new PerformanceDebugger();
 
 /**
  * A word that can be used by the WordCloud.
@@ -444,8 +337,8 @@ class WordCloud {
   }
 
   /**
-   * Does the new rectangle hit any of the
-   * existing ones?
+   * Does the new rectangle hit any of the existing
+   * ones?
    *
    * if (RectA.Left < RectB.Right &&
    *     RectA.Right > RectB.Left &&
@@ -467,8 +360,7 @@ class WordCloud {
   }
 
   /**
-   * Does the new rectangle hit any of the
-   * sides?
+   * Does the new rectangle hit any of the sides?
    */
   _checkRectOutsideBorders(newRect) {
     if (newRect.minX < 0 + this.bufferRoom ||
@@ -808,7 +700,7 @@ class WordCloud {
     let width = this.providedWidth;
     let height = this.providedHeight;
     if (this.growToFit) {
-      ({ width, height } = await deeperPerformanceDebugger.wrap(this._preflightGrow, [width, height], this));
+      ({ width, height } = await this._preflightGrow(width, height));
     }
 
     let placedAll = false;
@@ -820,8 +712,8 @@ class WordCloud {
       this.centerY = height / 2;
       this.hitBoxes = [];
 
-      await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [false], this, "writeAlreadyPlacedWords-" + i);
-      placedAll = await deeperPerformanceDebugger.wrap(this._writePendingWords, [false], this, "writePendingWords-" + i);
+      await this._writeAlreadyPlacedWords(false);
+      placedAll = await this._writePendingWords(false);
 
       if (!this.growToFit) {
         break;
@@ -837,7 +729,7 @@ class WordCloud {
     this.ctx = new DrawContext();
     this.ctx.opaque = false;
     this.ctx.size = new Size(width, height);
-    await deeperPerformanceDebugger.wrap(this._writeAlreadyPlacedWords, [true], this, "writeAlreadyPlacedWords-" + i);
+    await this._writeAlreadyPlacedWords(true);
 
     // If debug is on, run the placement function one
     // last time to display how the function works.
@@ -957,7 +849,31 @@ function stencilWeightFunction(wordCloudWord) {
  ***** PLACEMENT FUNCTIONS *****
  *******************************/
 
-function testPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+function spiralPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+  let radius, radiusDirection, angle, angleDirection;
+  if (previousResult) {
+    ({
+      radius,
+      radiusDirection,
+      angle,
+      angleDirection
+    } = previousResult);
+    // Try these values too: 0.75 -> 0.1, 50 -> 100
+    radius += .75 * radiusDirection;
+    angle += (Math.PI * 2) / 50 * angleDirection;
+  } else {
+    radius = 0;
+    angle = 0;
+    radiusDirection = Math.random() < 0.5 ? -1 : 1;
+    angleDirection = Math.random() < 0.5 ? -1 : 1;
+  }
+
+  const x = centerX + radius * Math.cos(angle) * xRatio;
+  const y = centerY + radius * Math.sin(angle) * yRatio;
+  return { x, y, radius, angle, radiusDirection, angleDirection }
+}
+
+function galaxyPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
   const i = previousResult ? previousResult.i + 1 : 0;
   const scale = 2;
   const dots = 10;
@@ -968,7 +884,7 @@ function testPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, 
   return { x, y, angle, i }
 }
 
-function star(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+function starPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
   let i = previousResult ?
     previousResult.i + 1 :
     0;
@@ -980,7 +896,6 @@ function star(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
   const y = scale * angle * Math.sin(dots * angle) + centerY;
   return { x, y, angle, i }
 }
-
 
 /*****************
  ***** WORDS *****
@@ -1009,50 +924,31 @@ const wordCloudWords = [
   new WordCloudWord({ word: "Holly", weight: 1 }),
   new WordCloudWord({ word: "Jolly", weight: 1 })
 ];
-// const wordCloudWords = [
-//   new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 10 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 8 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 7 }),
-//   new WordCloudWord({ word: "Christmas", weight: 3 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 3 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 3 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 2 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 1 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 1 }),
-//   new WordCloudWord({ word: "Christmas Chr", weight: 1 })
-// ];
 
 /*************************
  ***** WIDGET CONFIG *****
  *************************/
 
-async function createWidget(width, height) {
+async function createWidget(
+  width,
+  height,
+  weightFunction,
+  placementFunction
+) {
   let widget = new ListWidget();
   widget.setPadding(0, 0, 0, 0);
-
 
   const wordCloud = new WordCloud({
     width,
     height,
     wordCloudWords,
-    //     weightFunction: hackerWeightFunction,
-    placementFunction: star,
+    weightFunction,
+    placementFunction,
     growToFit,
-    growthFunction: undefined,
+    growthFunction: undefined, // use default
     debug
   });
-  const image = await overallPerformanceDebugger.wrap(wordCloud.getImage, [], wordCloud);
-
-  await overallPerformanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance-overview.csv");
-  await deeperPerformanceDebugger.appendPerformanceDataToFile("storage/word-cloud-performance-deeper.csv");
+  const image = await wordCloud.getImage();
 
   const widgetImage = widget.addImage(image);
   widgetImage.applyFillingContentMode();
@@ -1061,16 +957,70 @@ async function createWidget(width, height) {
   return widget;
 }
 
+async function createDemoTable() {
+  const table = new UITable();
+
+  const smallRow = new UITableRow();
+  const wordCloud = new WordCloud({
+    width: 250,
+    height: 250,
+    wordCloudWords,
+    weightFunction: hackerWeightFunction,
+    placementFunction: starPlacementFunction,
+    growToFit,
+    growthFunction: undefined, // use default
+    debug
+  });
+  const image = await wordCloud.getImage();
+  smallRow.height = 200
+  const cell = smallRow.addImage(image);
+  cell.widthWeight = 100;
+  cell.dismissOnSelect = false;
+  cell.height = 400;
+  table.addRow(smallRow);
+  // 	let label = 'A';
+  // 	items.forEach(item => {
+  // 		logger.log('ITEM');
+  // 		logger.log(item);
+  // 		const row = new UITableRow();
+  // 		const markerUrl = `http://maps.google.com/mapfiles/kml/paddle/${label}.png`;
+  // 		const imageUrl = item.thumbnail ? item.thumbnail.source : '';
+  // 		const title = item.title;
+  // 		const markerCell = row.addButton(label);
+  // 		const imageCell = row.addImageAtURL(imageUrl);
+  // 		const titleCell = row.addText(title);
+  // 		markerCell.onTap = () => Safari.open(getCoordsUrl({ latitude: item.lat, longitude: item.lng }));
+  // 		markerCell.widthWeight = 10;
+  // 		imageCell.widthWeight = 20;
+  // 		titleCell.widthWeight = 50;
+  // 		row.height = 60;
+  // 		row.cellSpacing = 10;
+  // 		row.onSelect = () => Safari.open(item.url);
+  // 		row.dismissOnSelect = false;
+  // 		table.addRow(row);
+  // 		label = nextChar(label);
+  // 	});
+  return table;
+}
+
 try {
   if (config.runsInWidget) {
     const width = config.widgetFamily === "small" ? 250 : 530;
     const height = config.widgetFamily === "large" ? 530 : 250;
-    const widget = await createWidget(width, height);
+    const widget = await createWidget(
+      width,
+      height,
+      //       hackerWeightFunction,
+      //       starPlacementFunction
+    );
     Script.setWidget(widget);
     Script.complete();
   } else {
-    const widget = await createWidget(530, 250);
-    await widget.presentMedium();
+    //     const widget = await createWidget(
+    //       530, 250, hackerWeightFunction
+    //     );
+    //     await widget.presentMedium();
+    await QuickLook.present(await createDemoTable());
   }
 } catch (err) {
   console.log(err);
