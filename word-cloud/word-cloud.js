@@ -118,10 +118,6 @@ class WordCloud {
    * @param {boolean} [debug=false]
    *   - A boolean that writes additional context to
    *     the canvas for debugging.
-   * @param {boolean} [performanceBenefit=true]
-   *   - An boolean that determines whether or not to
-   *     store words' placements over time for a
-   *     performance benefit.
    */
   constructor({
     width,
@@ -131,8 +127,7 @@ class WordCloud {
     placementFunction = this._defaultPlacementFunction,
     growToFit = true,
     growthFunction = this._defaultGrowthFunction,
-    debug = false,
-    performanceBenefit = true,
+    debug = false
   }) {
     this.providedWidth = width;
     this.providedHeight = height;
@@ -141,7 +136,6 @@ class WordCloud {
     this.growToFit = !!growToFit;
     this.growthFunction = growthFunction;
     this.debug = !!debug;
-    this.performanceBenefot = !!performanceBenefit;
 
     this.processedWords = wordCloudWords.map(wordCloudWord => this.weightFunction(wordCloudWord));
     this.wordsToPlace = [...this.processedWords];
@@ -373,6 +367,7 @@ class WordCloud {
       newRect.maxX > this.width - this.bufferRoom ||
       newRect.minY < 0 + this.bufferRoom ||
       newRect.maxY > this.height - this.bufferRoom) {
+      // console.log("outside borders!");
       return true;
     }
     return false;
@@ -716,11 +711,6 @@ class WordCloud {
       this.centerX = width / 2;
       this.centerY = height / 2;
       this.hitBoxes = [];
-
-      if (!this.performanceBenefit) {
-        this.wordsToPlace = [...this.processedWords];
-        this.placedWords = [];
-      }
 
       await this._writeAlreadyPlacedWords(false);
       placedAll = await this._writePendingWords(false);
