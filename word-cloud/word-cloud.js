@@ -165,12 +165,14 @@ class WordCloud {
    *   - The word after processing.
    */
   _defaultWeightFunction(wordCloudWord) {
+    const max = 60;
+    const min = 10;
     return new WordCloudProcessedWord({
       word: wordCloudWord.word,
       wordCloudFont: new WordCloudFont({
         fontName: "TrebuchetMS-Bold"
       }),
-      fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
+      fontSize: (wordCloudWord.weight / 10) * (max - min) + min,
       color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
     });
   }
