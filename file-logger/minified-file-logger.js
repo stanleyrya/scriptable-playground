@@ -1,4 +1,6 @@
 /**
+ * Authors: Ryan Stanley (stanleyrya@gmail.com)
+ *
  * Class that can write logs to the file system.
  *
  * This is a minified version but it can be replaced with the full version by copy pasting this code!
