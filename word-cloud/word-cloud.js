@@ -730,6 +730,7 @@ class WordCloud {
 
     this.ctx = new DrawContext();
     this.ctx.opaque = false;
+    this.ctx.respectScreenScale = true;
     this.ctx.size = new Size(width, height);
     await this._writeAlreadyPlacedWords(true);
 
@@ -771,6 +772,7 @@ function simpleAndCleanWeightFunction(wordCloudWord) {
 
 function builtInFestiveWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
+	word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
       fontName: "SnellRoundhand-Black"
     }),
@@ -959,49 +961,111 @@ async function createWidget(
   return widget;
 }
 
+function wordCloudReplacer(key, val) {
+  const blocklist = ['wordCloudWords'];
+  
+  if (typeof val === 'function') {
+    return val.name;
+  } else if (blocklist.includes(key)) {
+	return;
+  }
+  return val;
+}
+
+function createDescriptionRow(title, subtitle) {
+  const smallRow = new UITableRow();
+
+  const textCell = smallRow.addText(title, subtitle);
+  textCell.titleFont = Font.mediumMonospacedSystemFont(20);
+textCell.subtitleFont = Font.mediumMonospacedSystemFont(12);
+  textCell.centerAligned();
+
+  return smallRow;
+}
+
+async function createDemoRow(wordCloudData) {
+  const smallRow = new UITableRow();
+  smallRow.height = 150;
+
+  const input = JSON.stringify(wordCloudData, wordCloudReplacer, "\t");
+  if (wordCloudData.width === undefined) {
+    wordCloudData.width = 250;
+  }
+  if (wordCloudData.height === undefined) {
+	wordCloudData.height = 250;
+  }
+  wordCloudData.wordCloudWords = wordCloudWords;
+
+  const wordCloud = new WordCloud(wordCloudData);
+  const image = await wordCloud.getImage();
+  const imageCell = smallRow.addImage(image);
+  imageCell.centerAligned();
+
+  const textCell = smallRow.addText(input);
+  textCell.titleFont = Font.mediumMonospacedSystemFont(12);
+
+//   smallRow.height = wordCloudData.height / 2;
+  return smallRow;
+}
+
 async function createDemoTable() {
   const table = new UITable();
 
-  const smallRow = new UITableRow();
-  const wordCloud = new WordCloud({
-    width: 250,
-    height: 250,
-    wordCloudWords,
-    weightFunction: hackerWeightFunction,
-    placementFunction: starPlacementFunction,
-    growToFit,
-    growthFunction: undefined, // use default
-    debug
-  });
-  const image = await wordCloud.getImage();
-  smallRow.height = 200
-  const cell = smallRow.addImage(image);
-  cell.widthWeight = 100;
-  cell.dismissOnSelect = false;
-  cell.height = 400;
-  table.addRow(smallRow);
-  // 	let label = 'A';
-  // 	items.forEach(item => {
-  // 		logger.log('ITEM');
-  // 		logger.log(item);
-  // 		const row = new UITableRow();
-  // 		const markerUrl = `http://maps.google.com/mapfiles/kml/paddle/${label}.png`;
-  // 		const imageUrl = item.thumbnail ? item.thumbnail.source : '';
-  // 		const title = item.title;
-  // 		const markerCell = row.addButton(label);
-  // 		const imageCell = row.addImageAtURL(imageUrl);
-  // 		const titleCell = row.addText(title);
-  // 		markerCell.onTap = () => Safari.open(getCoordsUrl({ latitude: item.lat, longitude: item.lng }));
-  // 		markerCell.widthWeight = 10;
-  // 		imageCell.widthWeight = 20;
-  // 		titleCell.widthWeight = 50;
-  // 		row.height = 60;
-  // 		row.cellSpacing = 10;
-  // 		row.onSelect = () => Safari.open(item.url);
-  // 		row.dismissOnSelect = false;
-  // 		table.addRow(row);
-  // 		label = nextChar(label);
-  // 	});
+  const rows = [
+    createDescriptionRow("Basics!", "There are only three required fields: width, height, and wordCloudWords."),
+    createDescriptionRow("Size!"),
+	await createDemoRow({width: 250, height: 250}),
+	await createDemoRow({width: 530, height: 250}),
+    createDescriptionRow("Flags!"),
+	await createDemoRow({
+	    debug: true
+	}),
+    await createDemoRow({
+	    growToFit: false
+	}),
+	createDescriptionRow("Placement Functions!"),
+	await createDemoRow({
+	    placementFunction: galaxyPlacementFunction,
+	}),
+    await createDemoRow({
+	    placementFunction: starPlacementFunction,
+	}),
+	createDescriptionRow("Weight Functions!"),
+	await createDemoRow({
+	    weightFunction: builtInFestiveWeightFunction,
+	}),
+	await createDemoRow({
+	    weightFunction: hackerWeightFunction,
+	}),
+	createDescriptionRow("... with Installable Fonts!", "Install these for them to display correctly!"),
+	await createDemoRow({
+	    weightFunction: spookyWeightFunction,
+	}),
+	await createDemoRow({
+	    weightFunction: customFestiveWeightFunction,
+	}),
+	await createDemoRow({
+	    weightFunction: stencilWeightFunction,
+	}),
+// 	await createDemoRow({
+// 	    weightFunction: hackerWeightFunction,
+// 	    placementFunction: starPlacementFunction,
+// 	    growToFit,
+// 	    growthFunction: undefined, // use default
+// 	    debug,
+// 	}),
+  ];
+    const goodFont = new Font("Lacquer", 10);
+    const badFont = new Font("boobs", 10);
+    console.log(JSON.stringify(goodFont));
+    console.log(badFont);
+	if (goodFont) {
+		console.log("hi");
+	}
+	if (new Font("boobs", 10)) {
+		console.log("hi");
+	}
+  rows.forEach((row) => table.addRow(row));
   return table;
 }
 
@@ -1012,16 +1076,10 @@ try {
     const widget = await createWidget(
       width,
       height,
-      //       hackerWeightFunction,
-      //       starPlacementFunction
     );
     Script.setWidget(widget);
     Script.complete();
   } else {
-    //     const widget = await createWidget(
-    //       530, 250, hackerWeightFunction
-    //     );
-    //     await widget.presentMedium();
     await QuickLook.present(await createDemoTable());
   }
 } catch (err) {
