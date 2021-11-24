@@ -1,6 +1,12 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-blue; icon-glyph: object-ungroup;
+
+/**
+ * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Tips: https://www.paypal.me/stanleyrya
+ */
+
 class HitBoxTester {
 
   constructor(width, height) {
@@ -8,7 +14,7 @@ class HitBoxTester {
     this.ctx.size = new Size(width, height);
     this.hitBoxes = [];
   }
-  
+
   _getAddFontHTML(fontFamily, fontCssUrl) {
     return `
 // Preconnecting could decrease load time
@@ -27,10 +33,10 @@ class HitBoxTester {
     return `
 /**
  * Uses canvas.measureText to compute and return the dimensions of the given text of given font in pixels.
- * 
+ *
  * @param {String} text The text to be rendered.
  * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
- * 
+ *
  * @see Inspired from: https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
  */
 function getTextDimensions(text, font) {
@@ -55,22 +61,22 @@ getTextDimensions(text, font);
   async _getTextDimensions(text, fontFamily, fontSize, fontCssUrl) {
     const cssFont = fontSize + "pt " + fontFamily;
     const webView = new WebView();
-    
+
     if (fontCssUrl) {
     await webView.loadHTML(
       this._getAddFontHTML(fontFamily, fontCssUrl))
     }
-    
+
     return await webView.evaluateJavaScript(
       this._getTextDimensionJavascript(text, cssFont)
     )
   }
-  
+
   // https://stackoverflow.com/a/306332
   // if (RectA.Left < RectB.Right &&
   //     RectA.Right > RectB.Left &&
   //     RectA.Top < RectB.Bottom &&
-  //     RectA.Bottom > RectB.Top) 
+  //     RectA.Bottom > RectB.Top)
   _checkCollision(newRect) {
     for (const placedRect of this.hitBoxes) {
       if (newRect.minX < placedRect.maxX &&
@@ -92,7 +98,7 @@ getTextDimensions(text, font);
     }
     return false;
   }
-  
+
   async _addTextCentered(x, y, text, font, fontSize, fontCssUrl) {
     const dimensions = await this._getTextDimensions(text, font, fontSize, fontCssUrl);
     const topLeftX = x - (dimensions.width / 2);
@@ -120,7 +126,7 @@ getTextDimensions(text, font);
     this.ctx.drawText(text, new Point(topLeftX, topLeftY- quarterHeight));
     return true;
   }
-  
+
   async configure(fn) {
     await this._addTextCentered(
       this.ctx.size.width / 2,
@@ -145,7 +151,7 @@ getTextDimensions(text, font);
 
 async function createWidget() {
 	let widget = new ListWidget();
-  
+
     let chart = await new HitBoxTester(600, 250).configure();
     let image = widget.addImage(chart);
 

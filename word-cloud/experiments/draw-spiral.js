@@ -1,6 +1,12 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: cyan; icon-glyph: redo-alt;
+
+/**
+ * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Tips: https://www.paypal.me/stanleyrya
+ */
+
 class Spiral {
   // Inspired by https://kevinkub.de/
 
@@ -44,7 +50,7 @@ class Spiral {
           previousResult
         );
         ({ x, y } = previousResult);
-        
+
         if (!pathSet) {
           path.move(new Point(x, y));
           pathSet = true;
@@ -70,7 +76,7 @@ class Spiral {
     this.ctx.setStrokeColor(Color.cyan());
     this.ctx.strokePath();
   }
-  
+
   configure(placementFunction) {
     this._draw(placementFunction);
     return this.ctx.getImage();
@@ -89,7 +95,7 @@ function spiral(width, height, centerX, centerY, xRatio, yRatio, previousResult)
   const y = centerY + radius * Math.sin(angle) * yRatio;
   return { x, y, radius, angle }
 }
-  
+
 function  topLeftSpiral(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let radius = previousResult ?
       previousResult.radius + .75 :
@@ -101,7 +107,7 @@ function  topLeftSpiral(width, height, centerX, centerY, xRatio, yRatio, previou
     const y = radius * Math.sin(angle);
     return { x, y, radius, angle }
   }
-  
+
   // https://www.codeproject.com/Articles/1213518/Dancing-with-Spirals
 function  trippy(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -113,7 +119,7 @@ function  trippy(width, height, centerX, centerY, xRatio, yRatio, previousResult
     const y = radius * Math.sin(angle) + centerY;
     return { x, y, radius, angle, i }
   }
-  
+
     // Logarithmic
   function tightCenterSpiral(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -125,7 +131,7 @@ function  trippy(width, height, centerX, centerY, xRatio, yRatio, previousResult
     const y = radius * Math.sin(angle) + centerY;
     return { x, y, radius, angle, i }
   }
-  
+
   // Super
 function   trippy2(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -149,7 +155,7 @@ function  thread(width, height, centerX, centerY, xRatio, yRatio, previousResult
     const y = 30 * radius * Math.sin(angle) + centerY;
     return { x, y, radius, angle, i }
   }
-  
+
   // Cochleoid
 function  openStar(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -161,7 +167,7 @@ function  openStar(width, height, centerX, centerY, xRatio, yRatio, previousResu
     const y = 100 * radius * Math.sin(angle) + centerY;
     return { x, y, radius, angle, i }
   }
-  
+
     // Cochleoid
   function tron(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -186,7 +192,7 @@ function  trippy3(width, height, centerX, centerY, xRatio, yRatio, previousResul
     const y = scale * angle * Math.sin(dots*angle) + centerY;
     return { x, y, angle, i }
   }
-  
+
 function  star(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
       previousResult.i + 1 :
@@ -199,7 +205,7 @@ function  star(width, height, centerX, centerY, xRatio, yRatio, previousResult) 
     const y = scale * angle * Math.sin(dots*angle) + centerY;
     return { x, y, angle, i }
   }
-  
+
 function  mess(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
       previousResult.i + 1 :
@@ -212,7 +218,7 @@ function  mess(width, height, centerX, centerY, xRatio, yRatio, previousResult) 
     const y = scale * angle * Math.sin(dots*angle) + centerY;
     return { x, y, angle, i }
   }
-  
+
 function  trippy4(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
       previousResult.i + 1 :

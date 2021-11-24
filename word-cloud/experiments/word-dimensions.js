@@ -1,13 +1,19 @@
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: gray; icon-glyph: ruler-combined;
+
+/**
+ * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Tips: https://www.paypal.me/stanleyrya
+ */
+
 const baseJavascript = `
 /**
  * Uses canvas.measureText to compute and return the dimensions of the given text of given font in pixels.
- * 
+ *
  * @param {String} text The text to be rendered.
  * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
- * 
+ *
  * @see Inspired from: https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
  */
 function getTextDimensions(text, font) {
