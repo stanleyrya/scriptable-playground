@@ -4,6 +4,9 @@
 /*
  * Authors: Ryan Stanley (stanleyrya@gmail.com)
  * Description: Scriptable code to display a word cloud.
+ *
+ * Tips: If you like this, please consider a couple of dollars in a tip! I'll use it to buy a coffee and keep working :)
+ * https://www.paypal.me/stanleyrya
  */
 
 const growToFit = true;
@@ -129,6 +132,10 @@ class WordCloud {
     growthFunction = this._defaultGrowthFunction,
     debug = false
   }) {
+	if (!width || !height || !wordCloudWords) {
+	  throw ("Could not get width, height, and wordCloudWords from input. Please see documentation.");
+    }
+
     this.providedWidth = width;
     this.providedHeight = height;
     this.placementFunction = placementFunction;
@@ -182,12 +189,12 @@ class WordCloud {
    * included with the WordCloud class.
    * Please use it as an example!
    *
-   * @param {number} width
-   * @param {number} height
-   * @param {number} centerX
-   * @param {number} centerY
-   * @param {number} xRatio - Useful for scaling.
-   * @param {number} yRatio - Useful for scaling.
+   * @param {number} width - of the Canvas (after growth if applicable)
+   * @param {number} height - of the Canvas (after growth if applicable)
+   * @param {number} centerX - center X value
+   * @param {number} centerY - center Y value
+   * @param {number} xRatio - (width / biggestSide) - useful for scaling
+   * @param {number} yRatio - (height / biggestSide) - useful for scaling
    * @param {Object} previousResult
    *  - The previously returned object. Useful to
    *    store state.
@@ -763,7 +770,7 @@ function simpleAndCleanWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
     word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
-      fontName: "TrebuchetMS-Bold"
+      fontName: 'TrebuchetMS-Bold'
     }),
     fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
     color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
@@ -772,9 +779,9 @@ function simpleAndCleanWeightFunction(wordCloudWord) {
 
 function builtInFestiveWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
-	word: wordCloudWord.word,
+    word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
-      fontName: "SnellRoundhand-Black"
+      fontName: 'SnellRoundhand-Black'
     }),
     fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
     color: Math.random() < 0.5 ? Color.red() : Color.green()
@@ -789,7 +796,7 @@ function hackerWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
     word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
-      fontName: "CourierNewPS-BoldMT"
+      fontName: 'CourierNewPS-BoldMT'
     }),
     fontSize: maxFont,
     color: color
@@ -815,8 +822,8 @@ function spookyWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
     word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
-      fontName: "Lacquer",
-      cssUrl: "https://fonts.googleapis.com/css2?family=Lacquer&display=swap"
+      fontName: 'Lacquer',
+      cssUrl: 'https://fonts.googleapis.com/css2?family=Lacquer&display=swap'
     }),
     fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
     color: Color.orange()
@@ -828,8 +835,8 @@ function customFestiveWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
     word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
-      fontName: "Cinzel Decorative",
-      cssUrl: "https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap"
+      fontName: 'Cinzel Decorative',
+      cssUrl: 'https://fonts.googleapis.com/css2?family=Cinzel+Decorative&display=swap'
     }),
     fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
     color: Math.random() < 0.5 ? Color.red() : Color.green()
@@ -841,8 +848,8 @@ function stencilWeightFunction(wordCloudWord) {
   return new WordCloudProcessedWord({
     word: wordCloudWord.word,
     wordCloudFont: new WordCloudFont({
-      fontName: "Fredericka the Great",
-      cssUrl: "https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap"
+      fontName: 'Fredericka the Great',
+      cssUrl: 'https://fonts.googleapis.com/css2?family=Fredericka+the+Great&display=swap'
     }),
     fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
     color: Color.lightGray()
@@ -906,27 +913,27 @@ function starPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, 
  *****************/
 
 const wordCloudWords = [
-  new WordCloudWord({ word: "Christmas", weight: 10 }),
-  new WordCloudWord({ word: "Snow", weight: 10 }),
-  new WordCloudWord({ word: "Sleigh", weight: 8 }),
-  new WordCloudWord({ word: "Santa", weight: 7 }),
-  new WordCloudWord({ word: "Presents", weight: 7 }),
-  new WordCloudWord({ word: "Candy Canes", weight: 7 }),
-  new WordCloudWord({ word: "Advent", weight: 6 }),
-  new WordCloudWord({ word: "Carol", weight: 6 }),
-  new WordCloudWord({ word: "Chimney", weight: 5 }),
-  new WordCloudWord({ word: "Dreidel", weight: 5 }),
-  new WordCloudWord({ word: "Druid", weight: 3 }),
-  new WordCloudWord({ word: "Eggnog", weight: 3 }),
-  new WordCloudWord({ word: "Elves", weight: 3 }),
-  new WordCloudWord({ word: "Epiphany", weight: 3 }),
-  new WordCloudWord({ word: "Feliz Navidad", weight: 3 }),
-  new WordCloudWord({ word: "Frankincense", weight: 2 }),
-  new WordCloudWord({ word: "Gingerbread", weight: 2 }),
-  new WordCloudWord({ word: "Grinch", weight: 2 }),
-  new WordCloudWord({ word: "Hanukkah", weight: 1 }),
-  new WordCloudWord({ word: "Holly", weight: 1 }),
-  new WordCloudWord({ word: "Jolly", weight: 1 })
+  new WordCloudWord({ word: "Seattle", weight: 10 }),
+  new WordCloudWord({ word: "Boston", weight: 10 }),
+  new WordCloudWord({ word: "Chicago", weight: 8 }),
+  new WordCloudWord({ word: "Denver", weight: 7 }),
+  new WordCloudWord({ word: "Boise", weight: 7 }),
+  new WordCloudWord({ word: "Los Angeles", weight: 7 }),
+  new WordCloudWord({ word: "San Fransisco", weight: 6 }),
+  new WordCloudWord({ word: "Victoria", weight: 6 }),
+  new WordCloudWord({ word: "Portland", weight: 5 }),
+  new WordCloudWord({ word: "London", weight: 5 }),
+  new WordCloudWord({ word: "Dublin", weight: 3 }),
+  new WordCloudWord({ word: "Barcelona", weight: 3 }),
+  new WordCloudWord({ word: "Amsterdam", weight: 3 }),
+  new WordCloudWord({ word: "Budapest", weight: 3 }),
+  new WordCloudWord({ word: "Venice", weight: 3 }),
+  new WordCloudWord({ word: "Florence", weight: 2 }),
+  new WordCloudWord({ word: "Oslo", weight: 2 }),
+  new WordCloudWord({ word: "Paris", weight: 2 }),
+  new WordCloudWord({ word: "Tokyo", weight: 1 }),
+  new WordCloudWord({ word: "New York", weight: 1 }),
+  new WordCloudWord({ word: "Fort", weight: 1 })
 ];
 
 /*************************
@@ -961,7 +968,7 @@ async function createWidget(
   return widget;
 }
 
-function wordCloudReplacer(key, val) {
+function demoDisplayReplacer(key, val) {
   const blocklist = ['wordCloudWords'];
   
   if (typeof val === 'function') {
@@ -972,22 +979,52 @@ function wordCloudReplacer(key, val) {
   return val;
 }
 
-function createDescriptionRow(title, subtitle) {
-  const smallRow = new UITableRow();
+function createTitleRow(text) {
+  const row = new UITableRow();
 
-  const textCell = smallRow.addText(title, subtitle);
-  textCell.titleFont = Font.mediumMonospacedSystemFont(20);
-textCell.subtitleFont = Font.mediumMonospacedSystemFont(12);
-  textCell.centerAligned();
+  const titleCell = row.addText(text);
+  titleCell.titleFont = Font.mediumMonospacedSystemFont(20);
+  titleCell.centerAligned();
 
-  return smallRow;
+  return row;
 }
 
-async function createDemoRow(wordCloudData) {
+function createDescriptionRow(text, height, url) {
+  const row = new UITableRow();
+
+  const descriptionCell = row.addText(text);
+descriptionCell.titleFont = Font.mediumMonospacedSystemFont(12);
+  descriptionCell.leftAligned();
+
+  row.height = height || 50;
+  if (url) {
+	row.onSelect = () => Safari.open(url);
+  }
+  return row;
+}
+
+// Given an object that contains functions, turn them into actual functions in a copy-pastable string.
+function createCopyPasteableInput(wordCloudData) {
+  function demoCopyReplacer(key, val) {
+    if (typeof val === 'function') {
+      return val.toString().replace(/(\r\n|\n|\r)/gm, "");
+    }
+    return val;
+  }
+  const objWithStringFuncs = JSON.stringify(wordCloudData, demoCopyReplacer, "\t");
+
+  function removeQuotes(match, p1, offset, string) {
+    const fixedFunc = p1.slice(1, -1);
+    return match.replace(p1, fixedFunc);
+  }
+  return objWithStringFuncs.replace(/^.*Function".*: (".*")/gm, removeQuotes);
+}
+
+async function createDemoRow(wordCloudData, showJson = true) {
   const smallRow = new UITableRow();
   smallRow.height = 150;
 
-  const input = JSON.stringify(wordCloudData, wordCloudReplacer, "\t");
+  const input = JSON.stringify(wordCloudData, demoDisplayReplacer, "\t");
   if (wordCloudData.width === undefined) {
     wordCloudData.width = 250;
   }
@@ -1001,10 +1038,12 @@ async function createDemoRow(wordCloudData) {
   const imageCell = smallRow.addImage(image);
   imageCell.centerAligned();
 
-  const textCell = smallRow.addText(input);
-  textCell.titleFont = Font.mediumMonospacedSystemFont(12);
+  if (showJson) {
+    const textCell = smallRow.addText(input);
+    textCell.titleFont = Font.mediumMonospacedSystemFont(12);
+    smallRow.onSelect = () => Pasteboard.copyString(createCopyPasteableInput(wordCloudData));
+  }
 
-//   smallRow.height = wordCloudData.height / 2;
   return smallRow;
 }
 
@@ -1012,59 +1051,132 @@ async function createDemoTable() {
   const table = new UITable();
 
   const rows = [
-    createDescriptionRow("Basics!", "There are only three required fields: width, height, and wordCloudWords."),
-    createDescriptionRow("Size!"),
+    createTitleRow("Dynamic Word Cloud!"),
+	await createDemoRow({width: 700, height: 250}, false),
+
+    createDescriptionRow(`-> Quickstart copy-paste with minified script (easier to read!)`, 60, "https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470"),
+
+    createDescriptionRow("This is a dynamic word cloud class that can be copy-pasted to your own script!", 60),
+    createDescriptionRow("There are only three required fields: Width, Height, and WordCloudWords. WordCloudWords are objects with two properties: Word (string) and Weight (number). Here's an example of a WordCloudWords array:", 80),
+    createDescriptionRow(JSON.stringify(wordCloudWords, undefined, "\t"), 300),
+    createDescriptionRow("This object could be static or you could code something to generate it. I recommend calculating a word's weight by it's frequency in a dataset (Calendar events, weather, etc.), but you could use whatever you want!", 100),
+
+    createDescriptionRow("Next is Width and Height. These are pretty simple to work with. Here are some examples:", 60) ,
 	await createDemoRow({width: 250, height: 250}),
 	await createDemoRow({width: 530, height: 250}),
-    createDescriptionRow("Flags!"),
-	await createDemoRow({
-	    debug: true
-	}),
-    await createDemoRow({
-	    growToFit: false
-	}),
-	createDescriptionRow("Placement Functions!"),
+    createDescriptionRow("The word cloud is generated dynamically so it can fit different widget sizes. It will also work with weirder sizes like long ones. Get creative!", 60),
+	await createDemoRow({width: 200, height: 600}),
+    createDescriptionRow("The next sections will use the sample WordCloudWords object and a Width and Height of 250 each. You can copy the entire object by selecting the row. This is useful if you want to copy to another script. Have fun!", 100),
+
+    createTitleRow("Flags!"),
+    createDescriptionRow("Now we get to the fun stuff. Here are some flags that you can pass in to modify the word cloud's behavior. When debug is set to true it will display the 'hitboxes' used in the placement algorithm for each word. it will also display the placement algorithm's path:", 120),
+	await createDemoRow({debug: true}),
+
+    createDescriptionRow("The growToFit flag determines whether or not the canvas will 'grow' to fit all of the words provided. When set to true (default) it will continuously increase the size of the canvas until all of the provided words can be placed. If it is set to false it will simply try to place words as best it can:", 120),
+    await createDemoRow({growToFit: false}),
+
+	createTitleRow("Placement Functions!"),
+    createDescriptionRow("Placement functions are plotting functions that return (x,y) coordinates. They are called continuously until all of the words can be plotted with their center on a coordinate (or there is no more space if growToFit is false). They can be confusing at first but they are very powerful. Before we get into it, here's the method reference:", 140),
+createDescriptionRow(`
+  /**
+   * @param {number} width - of the Canvas (after growth if applicable)
+   * @param {number} height - of the Canvas (after growth if applicable)
+   * @param {number} centerX - center X value
+   * @param {number} centerY - center Y value
+   * @param {number} xRatio - (width / biggestSide) - useful for scaling
+   * @param {number} yRatio - (height / biggestSide) - useful for scaling
+   * @param {Object} previousResult
+   *  - The previously returned object. Useful to
+   *    store state.
+   * @return { number, number, ... } { x, y, ... }
+   *  - The new x and y after processing. Return
+   *    any other information you may find useful!
+   */
+`, 280),
+    createDescriptionRow("Width, height, centerX, and centerY are pretty straightforward. xRatio and yRatio are the ratio of the side compared to the largest side and can be useful when scaling the algorithm for different input parameters. PreviousResult contains the results from the last iteration of the algorithm, which at a minimum includes the last x and y values.", 120),
+    createDescriptionRow("I recommend reading the example functions and modifying them to understand how they work. I also recommend googling some cool (x,y) plots and converting them to placement functions. For ingestigation you could modify my script here:", 100),
+    createDescriptionRow("<TODO LINK>", 20),
+    createDescriptionRow("Here are some placement algorithms I created that are different than the provided spiral one. When the debug parameter is set to true you can see what the algorithm is plotting:", 80),
 	await createDemoRow({
 	    placementFunction: galaxyPlacementFunction,
+	}),
+	await createDemoRow({
+	    placementFunction: galaxyPlacementFunction,
+	    debug: true
 	}),
     await createDemoRow({
 	    placementFunction: starPlacementFunction,
 	}),
-	createDescriptionRow("Weight Functions!"),
+	await createDemoRow({
+	    placementFunction: starPlacementFunction,
+	    debug: true
+	}),
+
+	createTitleRow("Weight Functions!"),
+    createDescriptionRow("Word clouds aren't complete without modifying the font! A weight function can be provided to modify how the words are displayed. You can use this function to convert weight to size, font type, opacity, color, and more! Here's the default method for context:", 120),
+createDescriptionRow(`
+  /**
+   * @param {WordCloudWord} wordCloudWord
+   *   - The word that is being processed.
+   * @return {WordCloudProcessedWord}
+   *   - The word after processing.
+   */
+  _defaultWeightFunction(wordCloudWord) {
+    const max = 60;
+    const min = 10;
+    return new WordCloudProcessedWord({
+      word: wordCloudWord.word,
+      wordCloudFont: new WordCloudFont({
+        fontName: "TrebuchetMS-Bold"
+      }),
+      fontSize: (wordCloudWord.weight / 10) * (max - min) + min,
+      color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
+    });
+  }
+`, 360),
+    createDescriptionRow("Just as I mentioned above, I recommend playing with the functions provided and getting creative. Here are some examples using built-in fonts:", 60),
 	await createDemoRow({
 	    weightFunction: builtInFestiveWeightFunction,
 	}),
 	await createDemoRow({
 	    weightFunction: hackerWeightFunction,
 	}),
-	createDescriptionRow("... with Installable Fonts!", "Install these for them to display correctly!"),
+
+	createTitleRow("... with Custom Fonts!"),
+    createDescriptionRow("You can use custom fonts too! Before you get too excited custom fonts require specific setup and are not guarranteed to work. The word cloud algorithm depends on generating word 'hitboxes' to make sure words don't overlap with each other. At this time the hitboxes are generated by rendering the word with Scriptable's WebView tool. Custom fonts aren't referencable from within the tool so they have to be installed on the fly using a CSS stylesheet URL. The word cloud itself is being rendered using Scriptable's DrawContext so the font needs to be installed locally too for the whole thing to work.", 240),
+    createDescriptionRow("TL;DR: You need to both install the font locally and provide a reference to the CSS stylesheet hosted somewhere online to use custom fonts. This has currently only been tested with Google fonts. Here's an example:", 100),
+createDescriptionRow(`
+// https://fonts.google.com/specimen/Lacquer
+  function spookyWeightFunction(wordCloudWord) {
+    return new WordCloudProcessedWord({
+      word: wordCloudWord.word,
+      wordCloudFont: new WordCloudFont({
+        fontName: "Lacquer",
+        cssUrl: "https://fonts.googleapis.com/css2?family=Lacquer&display=swap"
+      }),
+      fontSize: (wordCloudWord.weight / 10) * (maxFont - minFont) + minFont,
+      color: Color.orange()
+    });
+  }
+`, 240),
+    createDescriptionRow(`The fontName is the font family. This article [1] suggests this app [2] is the safest way to download fonts to iOS. Be careful, use at your own risk!`, 60),
+    createDescriptionRow(`-> [1] - https://9to5mac.com/2020/06/12/fontcase-open-source-fonts-app-iphone-ipad`, 60, "https://9to5mac.com/2020/06/12/fontcase-open-source-fonts-app-iphone-ipad"),
+    createDescriptionRow(`-> [2] - https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470`, 60, "https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470"),
+    createDescriptionRow(`After all of that hassle I hope you agree the effort is worth it! Once these fonts are installed they will begin working:`, 60),
+    createDescriptionRow(`-> https://fonts.google.com/specimen/Lacquer`, 60, "https://fonts.google.com/specimen/Lacquer"),
 	await createDemoRow({
 	    weightFunction: spookyWeightFunction,
 	}),
+    createDescriptionRow(`-> https://fonts.google.com/specimen/Cinzel+Decorative`, 60, "https://fonts.google.com/specimen/Cinzel+Decorative"),
 	await createDemoRow({
 	    weightFunction: customFestiveWeightFunction,
 	}),
+	createDescriptionRow(`-> https://fonts.google.com/specimen/Fredericka+the+Great`, 60, "https://fonts.google.com/specimen/Fredericka+the+Great`"),
 	await createDemoRow({
 	    weightFunction: stencilWeightFunction,
 	}),
-// 	await createDemoRow({
-// 	    weightFunction: hackerWeightFunction,
-// 	    placementFunction: starPlacementFunction,
-// 	    growToFit,
-// 	    growthFunction: undefined, // use default
-// 	    debug,
-// 	}),
   ];
-    const goodFont = new Font("Lacquer", 10);
-    const badFont = new Font("boobs", 10);
-    console.log(JSON.stringify(goodFont));
-    console.log(badFont);
-	if (goodFont) {
-		console.log("hi");
-	}
-	if (new Font("boobs", 10)) {
-		console.log("hi");
-	}
+
   rows.forEach((row) => table.addRow(row));
   return table;
 }
