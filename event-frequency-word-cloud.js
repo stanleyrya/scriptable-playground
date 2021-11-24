@@ -4,9 +4,6 @@
 
 //@ts-check
 
-// use true to initially give Scriptable calendar access
-// use false to open Calendar when script is run - when tapping on the widget
-
 const numDays = 90;
 const blocklist = [
   "Oncall",
