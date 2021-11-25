@@ -266,9 +266,6 @@ function demoDisplayReplacer(key, val) {
 // Mostly copied from minified wordcloud script:
 // https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/minified-word-cloud.js
 const demoTemplate = `
-// Variables used by Scriptable.
-// These must be at the very top of the file. Do not edit.
-// icon-color: cyan; icon-glyph: cloud;
 /**
  * Author: Ryan Stanley (stanleyrya@gmail.com)
  * Tips: https://www.paypal.me/stanleyrya
