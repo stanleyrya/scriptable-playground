@@ -13,6 +13,9 @@ const blocklist = [
 const params = JSON.parse(args.widgetParameter) || {};
 
 /**
+ * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Tips: https://www.paypal.me/stanleyrya
+ *
  * Adds events to the frequency map
  *
  * @param  {[CalendarEvent]} events - the events that are being processed

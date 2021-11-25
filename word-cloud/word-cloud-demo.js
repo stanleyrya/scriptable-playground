@@ -265,7 +265,7 @@ function demoDisplayReplacer(key, val) {
 // Replace {{INPUT_HERE}} with input
 // Mostly copied from minified wordcloud script:
 // https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/minified-word-cloud.js
-const demoTemplate = ```
+const demoTemplate = `
 // Variables used by Scriptable.
 // These must be at the very top of the file. Do not edit.
 // icon-color: cyan; icon-glyph: cloud;
@@ -317,7 +317,7 @@ widgetImage.applyFillingContentMode();
 widgetImage.centerAlignImage();
 Script.setWidget(widget);
 Script.complete();
-```
+`
 
 // Given an object that contains functions, turn them into actual functions in a copy-pastable string.
 function createCopyPasteableInput(wordCloudData) {

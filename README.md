@@ -1,5 +1,10 @@
 # scriptable-playground
 
+### Tips
+
+Tips are not required but they are greatly appreciated. Please enjoy the scripts!
+https://www.paypal.me/stanleyrya
+
 ### [file-logger](https://github.com/stanleyrya/scriptable-playground/blob/main/file-logger/file-logger.js)
 
 Class that can write logs to the file system.

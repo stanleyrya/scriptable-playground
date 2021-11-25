@@ -3,10 +3,13 @@
 // icon-color: cyan; icon-glyph: file-signature;
 
 /**
+ * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Tips: https://www.paypal.me/stanleyrya
+ *
  * Class that can read and write JSON objects using the file system.
  *
- * This is a minified version but it can be replaced with the full version by copy pasting this code!
- * https://github.com/stanleyrya/scriptable-playground/blob/main/json-file-manager.js
+ * A minified version can be found here!
+ * https://github.com/stanleyrya/scriptable-playground/tree/main/json-file-manager
  *
  * Usage:
  *  * write(relativePath, jsonObject): Writes JSON object to a relative path.

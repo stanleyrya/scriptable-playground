@@ -15,7 +15,8 @@ const blocklist = [
 // ____________________________________________
 
 /**
- * Authors: Ryan Stanley (stanleyrya@gmail.com)
+ * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Tips: https://www.paypal.me/stanleyrya
  *
  * A set of classes that can create a word cloud image.
  *

@@ -3,10 +3,13 @@
 // icon-color: teal; icon-glyph: file-medical-alt;
 
 /**
+ * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Tips: https://www.paypal.me/stanleyrya
+ *
  * Class that can capture the time functions take in milliseconds then export them to a CSV.
  *
- * This is a minified version but it can be replaced with the full version by copy pasting this code!
- * https://github.com/stanleyrya/scriptable-playground/blob/main/append-to-performance-metrics.js
+ * A minified version can be found here!
+ * https://github.com/stanleyrya/scriptable-playground/tree/main/json-file-manager
  *
  * Usage:
  *  * wrap(fn, args): Wrap the function calls you want to monitor with this wrapper.

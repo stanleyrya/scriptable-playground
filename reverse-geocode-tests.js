@@ -3,6 +3,9 @@
 // icon-color: deep-green; icon-glyph: search-location;
 
 /*
+ * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Tips: https://www.paypal.me/stanleyrya
+ *
  * Given coordinates, return a description of the current location in words (town name, etc.).
  * Object returned has two properties:
  * {

@@ -1,10 +1,11 @@
 /**
- * Authors: Ryan Stanley (stanleyrya@gmail.com)
+ * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Tips: https://www.paypal.me/stanleyrya
  *
  * Class that can write logs to the file system.
  *
- * This is a minified version but it can be replaced with the full version by copy pasting this code!
- * https://github.com/stanleyrya/scriptable-playground/blob/main/file-logger/file-logger.js
+ * This is a minified version but it can be replaced with the full version here!
+ * https://github.com/stanleyrya/scriptable-playground/tree/main/file-logger
  *
  * Usage:
  *  * log(line): Adds the log line to the class' internal log object.
