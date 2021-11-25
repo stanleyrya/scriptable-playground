@@ -29,7 +29,6 @@
  *  }
  *
  */
-
 class WordCloudWord{constructor({word:r,weight:i}){if(!r)throw"word is required!";if(!i)throw"weight is required!";this.word=r,this.weight=i}}
 class WordCloudFont{constructor({fontName:s,cssUrl:o}){if(!s)throw"fontName is required!";this.fontName=s,this.cssURL=o}}
 class WordCloudProcessedWord{constructor({word:o,wordCloudFont:r,fontSize:d,color:t}){if(!o)throw"word is required!";if(!r)throw"wordCloudFont is required!";if(!(r instanceof WordCloudFont))throw"wordCloudFont must be a WordCloudFont object!";if(!d)throw"fontSize is required!";if(!t)throw"color is required!";this.word=o,this.wordCloudFont=r,this.fontSize=d,this.color=t}}
@@ -371,7 +370,7 @@ async function createDemoTable() {
 
   const rows = [
     createTitleRow("Dynamic Word Cloud!"),
-	await createDemoRow({ width: 700, height: 250 }, false),
+	  await createDemoRow({ width: 700, height: 250 }, false),
     createDescriptionRow("This demo shows off a dynamic word cloud class that can be copy-pasted to your own script! Throughout the demo simply press on an example row to copy a full-working Scriptable script. These examples use a minified version of the word cloud classes which are easier to read. You can also cut to the chase and use either the normal [1] or minified [2] versions on Github. I strongly recommend using the minified version to start.", 160),
     createDescriptionRow(`-> [1] - https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/word-cloud.js`, 60, "https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/word-cloud.js"),
     createDescriptionRow(`-> [2] - https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/minified-word-cloud.js`, 60, "https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/minified-word-cloud.js"),
@@ -381,10 +380,10 @@ async function createDemoTable() {
     createDescriptionRow("This object could be static or you could code something to generate it. I recommend calculating a word's weight by it's frequency in a dataset (Calendar events, weather, etc.), but you could use whatever you want!", 100),
 
     createDescriptionRow("Next is Width and Height. These are pretty simple to work with. Here are some examples:", 60),
-	await createDemoRow({ width: 250, height: 250 }),
-	await createDemoRow({ width: 530, height: 250 }),
+	  await createDemoRow({ width: 250, height: 250 }),
+	  await createDemoRow({ width: 530, height: 250 }),
     createDescriptionRow("The word cloud is generated dynamically so it can fit different widget sizes. It will also work with weirder sizes like long ones. Get creative!", 60),
-	await createDemoRow({ width: 200, height: 600 }),
+	  await createDemoRow({ width: 200, height: 600 }),
     createDescriptionRow("The next sections will use the sample WordCloudWords object and a Width and Height of 250 each. Remember you can press any example row to get a working script example. Have fun!", 80),
 
 
@@ -392,15 +391,15 @@ async function createDemoTable() {
 
     createTitleRow("Flags!"),
     createDescriptionRow("Now we get to the fun stuff. Here are some flags that you can pass in to modify the word cloud's behavior. When debug is set to true it will display the 'hitboxes' used in the placement algorithm for each word. it will also display the placement algorithm's path:", 120),
-	await createDemoRow({ debug: true }),
+	  await createDemoRow({ debug: true }),
     createDescriptionRow("The growToFit flag determines whether or not the canvas will 'grow' to fit all of the words provided. When set to true (default) it will continuously increase the size of the canvas until all of the provided words can be placed. If it is set to false it will simply try to place words as best it can:", 120),
     await createDemoRow({ growToFit: false }),
 
 // -------------------------------- //
 
-	createTitleRow("Placement Functions!"),
+	  createTitleRow("Placement Functions!"),
     createDescriptionRow("Placement functions are plotting functions that return (x,y) coordinates. They are called continuously until all of the words can be plotted with their center on a coordinate (or there is no more space if growToFit is false). They can be confusing at first but they are very powerful. Before we get into it, here's an example:", 140),
-createDescriptionRow(`
+    createDescriptionRow(`
   function spiralPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let radius, angle;
 
@@ -422,26 +421,26 @@ createDescriptionRow(`
     createDescriptionRow("I recommend reading the example functions and modifying them to understand how they work. I also recommend googling some cool (x,y) plots and converting them to placement functions. For ingestigation you could modify my script here:", 100),
     createDescriptionRow("-> https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/experiments/draw-spiral.js", 60, 'https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/experiments/draw-spiral.js'),
     createDescriptionRow("Here are some placement algorithms I created that are different than the provided spiral one. When the debug parameter is set to true you can see what the algorithm is plotting:", 80),
-	await createDemoRow({
+	  await createDemoRow({
       placementFunction: galaxyPlacementFunction,
     }),
-	await createDemoRow({
+	  await createDemoRow({
       placementFunction: galaxyPlacementFunction,
       debug: true
     }),
     await createDemoRow({
       placementFunction: starPlacementFunction,
     }),
-	await createDemoRow({
+	  await createDemoRow({
       placementFunction: starPlacementFunction,
       debug: true
     }),
 
 // -------------------------------- //
 
-	createTitleRow("Weight Functions!"),
+	  createTitleRow("Weight Functions!"),
     createDescriptionRow("Word clouds aren't complete without modifying the font! A weight function can be provided to modify how the words are displayed. You can use this function to convert weight to size, font type, opacity, color, and more! Here's the default method for context:", 120),
-createDescriptionRow(`
+    createDescriptionRow(`
   /**
    * @param {WordCloudWord} wordCloudWord
    *   - The word that is being processed.
@@ -462,10 +461,10 @@ createDescriptionRow(`
   }
 `, 360),
     createDescriptionRow("Just as I mentioned above, I recommend playing with the functions provided and getting creative. Here are some examples using built-in fonts:", 60),
-	await createDemoRow({
+	  await createDemoRow({
       weightFunction: builtInFestiveWeightFunction,
     }),
-	await createDemoRow({
+	  await createDemoRow({
       weightFunction: hackerWeightFunction,
     }),
 
@@ -474,7 +473,7 @@ createDescriptionRow(`
 	createTitleRow("... with Custom Fonts!"),
     createDescriptionRow("You can use custom fonts too! Before you get too excited custom fonts require specific setup and are not guarranteed to work. The word cloud algorithm depends on generating word 'hitboxes' to make sure words don't overlap with each other. At this time the hitboxes are generated by rendering the word with Scriptable's WebView tool. Custom fonts aren't referencable from within the tool so they have to be installed on the fly using a CSS stylesheet URL. The word cloud itself is being rendered using Scriptable's DrawContext so the font needs to be installed locally too for the whole thing to work.", 240),
     createDescriptionRow("TL;DR: You need to both install the font locally and provide a reference to the CSS stylesheet hosted somewhere online to use custom fonts. This has currently only been tested with Google fonts. Here's an example:", 100),
-createDescriptionRow(`
+    createDescriptionRow(`
 // https://fonts.google.com/specimen/Lacquer
   function spookyWeightFunction(wordCloudWord) {
     return new WordCloudProcessedWord({
@@ -493,20 +492,20 @@ createDescriptionRow(`
     createDescriptionRow(`-> [2] - https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470`, 60, "https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470"),
     createDescriptionRow(`After all of that hassle I hope you agree the effort is worth it! Once these fonts are installed they will begin working:`, 60),
     createDescriptionRow(`-> https://fonts.google.com/specimen/Lacquer`, 60, "https://fonts.google.com/specimen/Lacquer"),
-	await createDemoRow({
+	  await createDemoRow({
       weightFunction: spookyWeightFunction,
     }),
     createDescriptionRow(`-> https://fonts.google.com/specimen/Cinzel+Decorative`, 60, "https://fonts.google.com/specimen/Cinzel+Decorative"),
-	await createDemoRow({
+	  await createDemoRow({
       weightFunction: customFestiveWeightFunction,
     }),
-	createDescriptionRow(`-> https://fonts.google.com/specimen/Fredericka+the+Great`, 60, "https://fonts.google.com/specimen/Fredericka+the+Great`"),
-	await createDemoRow({
+	  createDescriptionRow(`-> https://fonts.google.com/specimen/Fredericka+the+Great`, 60, "https://fonts.google.com/specimen/Fredericka+the+Great`"),
+	  await createDemoRow({
       weightFunction: stencilWeightFunction,
     }),
 
-	createTitleRow("Thank You!"),
-    createDescriptionRow(`If you enjoyed this demo or the scripts please consider buying me a coffee! I'd also love it if you tried out my other scripts on GitHub. Thanks again!`, 60),	
+	  createTitleRow("Thank You!"),
+    createDescriptionRow(`If you enjoyed this demo or the scripts please consider buying me a coffee! I'd also love it if you tried out my other scripts on GitHub. Thanks again!`, 60),
     createDescriptionRow("-> https://www.github.com/stanleyrya", 40, "https://www.github.com/stanleyrya"),
     createDescriptionRow("-> https://www.paypal.me/stanleyrya", 40, "https://www.paypal.me/stanleyrya"),
   ];
