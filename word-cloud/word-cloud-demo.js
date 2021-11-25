@@ -373,9 +373,10 @@ async function createDemoTable() {
     createTitleRow("Dynamic Word Cloud!"),
 	await createDemoRow({ width: 700, height: 250 }, false),
 
-    createDescriptionRow(`-> Quickstart copy-paste with minified script (easier to read!)`, 60, "https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470"),
+    createDescriptionRow("This demo shows off a dynamic word cloud class that can be copy-pasted to your own script! Throughout the demo simply press on an example row to copy a full-working Scriptable script. These examples use a minified version of the word cloud classes which are easier to read. You can also cut to the chase and use either the normal [1] or minified [2] versions on Github. I strongly recommend using the minified version to start.", 160),
+    createDescriptionRow(`-> [1] - https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/word-cloud.js`, 60, "https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/word-cloud.js"),
+    createDescriptionRow(`-> [2] - https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/minified-word-cloud.js`, 60, "https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/minified-word-cloud.js"),
 
-    createDescriptionRow("This is a dynamic word cloud class that can be copy-pasted to your own script!", 60),
     createDescriptionRow("There are only three required fields: Width, Height, and WordCloudWords. WordCloudWords are objects with two properties: Word (string) and Weight (number). Here's an example of a WordCloudWords array:", 80),
     createDescriptionRow(JSON.stringify(wordCloudWords, undefined, "\t"), 300),
     createDescriptionRow("This object could be static or you could code something to generate it. I recommend calculating a word's weight by it's frequency in a dataset (Calendar events, weather, etc.), but you could use whatever you want!", 100),
@@ -385,36 +386,41 @@ async function createDemoTable() {
 	await createDemoRow({ width: 530, height: 250 }),
     createDescriptionRow("The word cloud is generated dynamically so it can fit different widget sizes. It will also work with weirder sizes like long ones. Get creative!", 60),
 	await createDemoRow({ width: 200, height: 600 }),
-    createDescriptionRow("The next sections will use the sample WordCloudWords object and a Width and Height of 250 each. You can copy the entire object by selecting the row. This is useful if you want to copy to another script. Have fun!", 100),
+    createDescriptionRow("The next sections will use the sample WordCloudWords object and a Width and Height of 250 each. Remember you can press any example row to get a working script example. Have fun!", 100),
+
+// -------------------------------- //
 
     createTitleRow("Flags!"),
     createDescriptionRow("Now we get to the fun stuff. Here are some flags that you can pass in to modify the word cloud's behavior. When debug is set to true it will display the 'hitboxes' used in the placement algorithm for each word. it will also display the placement algorithm's path:", 120),
 	await createDemoRow({ debug: true }),
-
     createDescriptionRow("The growToFit flag determines whether or not the canvas will 'grow' to fit all of the words provided. When set to true (default) it will continuously increase the size of the canvas until all of the provided words can be placed. If it is set to false it will simply try to place words as best it can:", 120),
     await createDemoRow({ growToFit: false }),
 
+// -------------------------------- //
+
 	createTitleRow("Placement Functions!"),
-    createDescriptionRow("Placement functions are plotting functions that return (x,y) coordinates. They are called continuously until all of the words can be plotted with their center on a coordinate (or there is no more space if growToFit is false). They can be confusing at first but they are very powerful. Before we get into it, here's the method reference:", 140),
+    createDescriptionRow("Placement functions are plotting functions that return (x,y) coordinates. They are called continuously until all of the words can be plotted with their center on a coordinate (or there is no more space if growToFit is false). They can be confusing at first but they are very powerful. Before we get into it, here's an example:", 140),
 createDescriptionRow(`
-  /**
-   * @param {number} width - of the Canvas (after growth if applicable)
-   * @param {number} height - of the Canvas (after growth if applicable)
-   * @param {number} centerX - center X value
-   * @param {number} centerY - center Y value
-   * @param {number} xRatio - (width / biggestSide) - useful for scaling
-   * @param {number} yRatio - (height / biggestSide) - useful for scaling
-   * @param {Object} previousResult
-   *  - The previously returned object. Useful to
-   *    store state.
-   * @return { number, number, ... } { x, y, ... }
-   *  - The new x and y after processing. Return
-   *    any other information you may find useful!
-   */
-`, 280),
-    createDescriptionRow("Width, height, centerX, and centerY are pretty straightforward. xRatio and yRatio are the ratio of the side compared to the largest side and can be useful when scaling the algorithm for different input parameters. PreviousResult contains the results from the last iteration of the algorithm, which at a minimum includes the last x and y values.", 120),
+  function spiralPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
+    let radius, angle;
+
+    if (previousResult) {
+      ({ radius, angle } = previousResult);
+      radius += .75;
+      angle += (Math.PI * 2) / 50;
+    } else {
+      radius = 0;
+      angle = 0;
+    }
+
+    const x = centerX + radius * Math.cos(angle) * xRatio;
+    const y = centerY + radius * Math.sin(angle) * yRatio;
+    return { x, y, radius, angle }
+  }
+`, 320),
+    createDescriptionRow("The inputs width, height, centerX, and centerY are pretty straightforward. xRatio and yRatio are the ratio of the side compared to the largest side and can be useful when scaling the algorithm for different input parameters. PreviousResult contains the results from the last iteration of the algorithm, which at a minimum includes the last x and y values. If it's helpful you can pass additional values in the result and use it in the next iteration, like radius and angle in the example.", 180),
     createDescriptionRow("I recommend reading the example functions and modifying them to understand how they work. I also recommend googling some cool (x,y) plots and converting them to placement functions. For ingestigation you could modify my script here:", 100),
-    createDescriptionRow("<TODO LINK>", 20),
+    createDescriptionRow("-> https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/experiments/draw-spiral.js", 60, 'https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/experiments/draw-spiral.js'),
     createDescriptionRow("Here are some placement algorithms I created that are different than the provided spiral one. When the debug parameter is set to true you can see what the algorithm is plotting:", 80),
 	await createDemoRow({
       placementFunction: galaxyPlacementFunction,
@@ -430,6 +436,8 @@ createDescriptionRow(`
       placementFunction: starPlacementFunction,
       debug: true
     }),
+
+// -------------------------------- //
 
 	createTitleRow("Weight Functions!"),
     createDescriptionRow("Word clouds aren't complete without modifying the font! A weight function can be provided to modify how the words are displayed. You can use this function to convert weight to size, font type, opacity, color, and more! Here's the default method for context:", 120),
@@ -460,6 +468,8 @@ createDescriptionRow(`
 	await createDemoRow({
       weightFunction: hackerWeightFunction,
     }),
+
+// -------------------------------- //
 
 	createTitleRow("... with Custom Fonts!"),
     createDescriptionRow("You can use custom fonts too! Before you get too excited custom fonts require specific setup and are not guarranteed to work. The word cloud algorithm depends on generating word 'hitboxes' to make sure words don't overlap with each other. At this time the hitboxes are generated by rendering the word with Scriptable's WebView tool. Custom fonts aren't referencable from within the tool so they have to be installed on the fly using a CSS stylesheet URL. The word cloud itself is being rendered using Scriptable's DrawContext so the font needs to be installed locally too for the whole thing to work.", 240),
