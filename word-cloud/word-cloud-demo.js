@@ -372,7 +372,6 @@ async function createDemoTable() {
   const rows = [
     createTitleRow("Dynamic Word Cloud!"),
 	await createDemoRow({ width: 700, height: 250 }, false),
-
     createDescriptionRow("This demo shows off a dynamic word cloud class that can be copy-pasted to your own script! Throughout the demo simply press on an example row to copy a full-working Scriptable script. These examples use a minified version of the word cloud classes which are easier to read. You can also cut to the chase and use either the normal [1] or minified [2] versions on Github. I strongly recommend using the minified version to start.", 160),
     createDescriptionRow(`-> [1] - https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/word-cloud.js`, 60, "https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/word-cloud.js"),
     createDescriptionRow(`-> [2] - https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/minified-word-cloud.js`, 60, "https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/minified-word-cloud.js"),
@@ -386,7 +385,8 @@ async function createDemoTable() {
 	await createDemoRow({ width: 530, height: 250 }),
     createDescriptionRow("The word cloud is generated dynamically so it can fit different widget sizes. It will also work with weirder sizes like long ones. Get creative!", 60),
 	await createDemoRow({ width: 200, height: 600 }),
-    createDescriptionRow("The next sections will use the sample WordCloudWords object and a Width and Height of 250 each. Remember you can press any example row to get a working script example. Have fun!", 100),
+    createDescriptionRow("The next sections will use the sample WordCloudWords object and a Width and Height of 250 each. Remember you can press any example row to get a working script example. Have fun!", 80),
+
 
 // -------------------------------- //
 
@@ -504,6 +504,11 @@ createDescriptionRow(`
 	await createDemoRow({
       weightFunction: stencilWeightFunction,
     }),
+
+	createTitleRow("Thank You!"),
+    createDescriptionRow(`If you enjoyed this demo or the scripts please consider buying me a coffee! I'd also love it if you tried out my other scripts on GitHub. Thanks again!`, 60),	
+    createDescriptionRow("-> https://www.github.com/stanleyrya", 40, "https://www.github.com/stanleyrya"),
+    createDescriptionRow("-> https://www.paypal.me/stanleyrya", 40, "https://www.paypal.me/stanleyrya"),
   ];
 
   rows.forEach((row) => table.addRow(row));
