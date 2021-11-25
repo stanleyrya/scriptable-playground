@@ -309,14 +309,17 @@ const wordCloud = new WordCloud({{INPUT_HERE}});
 
 // Sample usage
 
-const widget = new ListWidget();
-widget.setPadding(0, 0, 0, 0);
-const image = await wordCloud.getImage();
-const widgetImage = widget.addImage(image);
-widgetImage.applyFillingContentMode();
-widgetImage.centerAlignImage();
-Script.setWidget(widget);
-Script.complete();
+if (config.runsInWidget) {
+  const widget = new ListWidget();
+  widget.setPadding(0, 0, 0, 0);
+  const widgetImage = widget.addImage(image);
+  widgetImage.applyFillingContentMode();
+  widgetImage.centerAlignImage();
+  Script.setWidget(widget);
+  Script.complete();
+} else {
+  await QuickLook.present(image);
+}
 `
 
 // Given an object that contains functions, turn them into actual functions in a copy-pastable string.

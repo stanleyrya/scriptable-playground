@@ -127,10 +127,9 @@ const image = await wordCloud.getImage();
 
 // Sample usage
 
-const widget = new ListWidget();
-widget.setPadding(0, 0, 0, 0);
-
 if (config.runsInWidget) {
+  const widget = new ListWidget();
+  widget.setPadding(0, 0, 0, 0);
   const widgetImage = widget.addImage(image);
   widgetImage.applyFillingContentMode();
   widgetImage.centerAlignImage();
