@@ -306,6 +306,7 @@ class WordCloud{constructor({width:t,height:e,wordCloudWords:i,weightFunction:o=
 // Sample input
 
 const wordCloud = new WordCloud({{INPUT_HERE}});
+const image = await wordCloud.getImage();
 
 // Sample usage
 

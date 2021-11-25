@@ -978,14 +978,18 @@ const wordCloud = new WordCloud({
   height: height,
   wordCloudWords,
 });
+const image = await wordCloud.getImage();
 
 // Sample usage
 
-const widget = new ListWidget();
-widget.setPadding(0, 0, 0, 0);
-const image = await wordCloud.getImage();
-const widgetImage = widget.addImage(image);
-widgetImage.applyFillingContentMode();
-widgetImage.centerAlignImage();
-Script.setWidget(widget);
-Script.complete();
+if (config.runsInWidget) {
+  const widget = new ListWidget();
+  widget.setPadding(0, 0, 0, 0);
+  const widgetImage = widget.addImage(image);
+  widgetImage.applyFillingContentMode();
+  widgetImage.centerAlignImage();
+  Script.setWidget(widget);
+  Script.complete();
+} else {
+  await QuickLook.present(image);
+}
