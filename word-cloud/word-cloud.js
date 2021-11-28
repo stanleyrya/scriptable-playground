@@ -542,10 +542,11 @@ class WordCloud {
         breachedBottom = true;
       }
     }
+
     if (this.debug && shouldDraw) {
-      this.ctx.setLineWidth(.5);
+      this.ctx.setLineWidth(1);
       this.ctx.addPath(path);
-      this.ctx.setStrokeColor(Color.cyan());
+      this.ctx.setStrokeColor(new Color ("6693F5"));
       this.ctx.strokePath();
     }
     return placed;
@@ -761,7 +762,6 @@ class WordCloud {
     this.ctx.opaque = false;
     this.ctx.respectScreenScale = true;
     this.ctx.size = new Size(width, height);
-    await this._writeAlreadyPlacedWords(true);
 
     // If debug is on, run the placement function one
     // last time to display how the function works.
@@ -772,6 +772,7 @@ class WordCloud {
       await this._writeWithPlacementFunction(null, true);
     }
 
+    await this._writeAlreadyPlacedWords(true);
     return this.ctx.getImage();
   }
 
@@ -977,6 +978,9 @@ const wordCloud = new WordCloud({
   width: width,
   height: height,
   wordCloudWords,
+  debug: true,
+//    placementFunction: starPlacementFunction
+//   placementFunction: galaxyPlacementFunction
 });
 const image = await wordCloud.getImage();
 
@@ -988,6 +992,8 @@ if (config.runsInWidget) {
   const widgetImage = widget.addImage(image);
   widgetImage.applyFillingContentMode();
   widgetImage.centerAlignImage();
+  // Device.isUsingDarkAppearance() is slow, protect against not reading the words
+  widget.backgroundColor = Color.dynamic(Color.white(), Color.black());
   Script.setWidget(widget);
   Script.complete();
 } else {
