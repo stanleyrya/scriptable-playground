@@ -50,7 +50,7 @@ class Spiral {
           previousResult
         );
         ({ x, y } = previousResult);
-
+        
         if (!pathSet) {
           path.move(new Point(x, y));
           pathSet = true;
@@ -76,12 +76,25 @@ class Spiral {
     this.ctx.setStrokeColor(Color.cyan());
     this.ctx.strokePath();
   }
-
+  
   configure(placementFunction) {
     this._draw(placementFunction);
     return this.ctx.getImage();
   }
 
+}
+
+const table = new UITable();
+const rows = [];
+function addRow(func) {
+	const image = new Spiral(1000, 1000).configure(func);
+
+    const row = new UITableRow();
+    row.addText(func.name)
+    row.addImage(image);
+    row.height = 200;
+
+    rows.push(row);
 }
 
 function spiral(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
@@ -95,7 +108,8 @@ function spiral(width, height, centerX, centerY, xRatio, yRatio, previousResult)
   const y = centerY + radius * Math.sin(angle) * yRatio;
   return { x, y, radius, angle }
 }
-
+addRow(spiral);
+  
 function  topLeftSpiral(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let radius = previousResult ?
       previousResult.radius + .75 :
@@ -107,7 +121,8 @@ function  topLeftSpiral(width, height, centerX, centerY, xRatio, yRatio, previou
     const y = radius * Math.sin(angle);
     return { x, y, radius, angle }
   }
-
+addRow(topLeftSpiral);
+  
   // https://www.codeproject.com/Articles/1213518/Dancing-with-Spirals
 function  trippy(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -119,7 +134,8 @@ function  trippy(width, height, centerX, centerY, xRatio, yRatio, previousResult
     const y = radius * Math.sin(angle) + centerY;
     return { x, y, radius, angle, i }
   }
-
+addRow(trippy);
+  
     // Logarithmic
   function tightCenterSpiral(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -131,7 +147,8 @@ function  trippy(width, height, centerX, centerY, xRatio, yRatio, previousResult
     const y = radius * Math.sin(angle) + centerY;
     return { x, y, radius, angle, i }
   }
-
+addRow(tightCenterSpiral);
+  
   // Super
 function   trippy2(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -143,6 +160,7 @@ function   trippy2(width, height, centerX, centerY, xRatio, yRatio, previousResu
     const y = radius * Math.sin(angle) + centerY;
     return { x, y, radius, angle, i }
   }
+addRow(trippy2);
 
   // Atomic
 function  thread(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
@@ -155,7 +173,8 @@ function  thread(width, height, centerX, centerY, xRatio, yRatio, previousResult
     const y = 30 * radius * Math.sin(angle) + centerY;
     return { x, y, radius, angle, i }
   }
-
+addRow(thread);
+  
   // Cochleoid
 function  openStar(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -167,7 +186,8 @@ function  openStar(width, height, centerX, centerY, xRatio, yRatio, previousResu
     const y = 100 * radius * Math.sin(angle) + centerY;
     return { x, y, radius, angle, i }
   }
-
+addRow(openStar);
+  
     // Cochleoid
   function tron(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -179,6 +199,7 @@ function  openStar(width, height, centerX, centerY, xRatio, yRatio, previousResu
     const y = 100 * radius * Math.cos(angle) + centerY;
     return { x, y, radius, angle, i }
   }
+addRow(tron);
 
 function  trippy3(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
@@ -192,7 +213,8 @@ function  trippy3(width, height, centerX, centerY, xRatio, yRatio, previousResul
     const y = scale * angle * Math.sin(dots*angle) + centerY;
     return { x, y, angle, i }
   }
-
+addRow(trippy3);
+  
 function  star(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
       previousResult.i + 1 :
@@ -205,7 +227,8 @@ function  star(width, height, centerX, centerY, xRatio, yRatio, previousResult) 
     const y = scale * angle * Math.sin(dots*angle) + centerY;
     return { x, y, angle, i }
   }
-
+addRow(star);
+  
 function  mess(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
       previousResult.i + 1 :
@@ -213,12 +236,13 @@ function  mess(width, height, centerX, centerY, xRatio, yRatio, previousResult) 
     const scale = 2;
     const dots = 10;
     const range = 2345;
-    const angle=Math.PI*range/centerX*i;
+    const angle=Math.PI*range/500*i;
     const x = scale * angle * Math.cos(dots*angle) + centerX;
     const y = scale * angle * Math.sin(dots*angle) + centerY;
     return { x, y, angle, i }
   }
-
+addRow(mess);
+  
 function  trippy4(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
     let i = previousResult ?
       previousResult.i + 1 :
@@ -231,13 +255,12 @@ function  trippy4(width, height, centerX, centerY, xRatio, yRatio, previousResul
     const y = scale * angle * Math.sin(dots*angle) + centerY;
     return { x, y, angle, i }
   }
+addRow(trippy4);
 
-let widget = new ListWidget();
-let chart = new Spiral(1000, 1000).configure(trippy4);
-let image = widget.addImage(chart);
+rows.forEach((row) => table.addRow(row));
 
-Script.setWidget(widget);
-if (!config.runsInWidget) {
-  await widget.presentLarge();
-}
-Script.complete();
+await QuickLook.present(table);
+
+
+// additional inspiration:
+// https://www.codeproject.com/Articles/1213518/Dancing-with-Spirals
