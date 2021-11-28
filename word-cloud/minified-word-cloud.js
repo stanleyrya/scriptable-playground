@@ -133,6 +133,8 @@ if (config.runsInWidget) {
   const widgetImage = widget.addImage(image);
   widgetImage.applyFillingContentMode();
   widgetImage.centerAlignImage();
+  // Device.isUsingDarkAppearance() is slow, protect against not reading the words
+  widget.backgroundColor = Color.dynamic(Color.white(), Color.black());
   Script.setWidget(widget);
   Script.complete();
 } else {
