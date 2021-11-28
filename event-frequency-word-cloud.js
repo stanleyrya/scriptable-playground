@@ -2,8 +2,6 @@
 // These must be at the very top of the file. Do not edit.
 // icon-color: deep-blue; icon-glyph: user-astronaut;
 
-//@ts-check
-
 const numDays = 90;
 const blocklist = [
   "Oncall",
@@ -139,6 +137,9 @@ async function createWidget(width, height) {
     const widgetImage = widget.addImage(image);
     widgetImage.applyFillingContentMode();
     widgetImage.centerAlignImage();
+
+    // Device.isUsingDarkAppearance() is slow, protect against not reading the words
+    widget.backgroundColor = Color.dynamic(Color.white(), Color.black());
 
     return widget;
 }
