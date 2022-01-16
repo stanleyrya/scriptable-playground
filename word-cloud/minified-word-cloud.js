@@ -3,26 +3,29 @@
 // icon-color: cyan; icon-glyph: cloud;
 /**
  * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Github: https://www.github.com/stanleyrya
  * Tips: https://www.paypal.me/stanleyrya
  *
  * A set of classes that can create a word cloud image. Basic Usage:
+ *  * const wordCloudWords = [new WordCloudWord({word, weight}), ...]
  *  * const wordCloud = new WordCloud({width, height, wordCloudWords});
  *  * const image = await wordCloud.getImage();
  *
  * This is a minified version to make scripts easier to read,
  * but the full version along with a demo can be found here:
- * https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud
+ * https://github.com/stanleyrya/scriptable-word-cloud
  *
- * Advanced features (explained in full version and demo):
+ * Advanced features (explained in the demo):
  *  * Modify how the words are displayed and processed (font, color, etc.)
  *  * Modify how the words are placed on the word cloud (star shape, galaxy shape, etc.)
  *  * Display the debugging algorithm by passing in debug=true
  *  * and more!
  *
- * Here's the WordCloud constructor for the curious!
+ * Here's the complete WordCloud constructor for the curious!
  *  {
- *    width, height, wordCloudWords,
- *    growToFit = true, debug = false
+ *    width, height, wordCloudWords, // required
+ *    growToFit = true,
+ *    debug = false
  *    weightFunction = this._defaultWeightFunction,
  *    placementFunction = this._defaultPlacementFunction,
  *    growthFunction = this._defaultGrowthFunction

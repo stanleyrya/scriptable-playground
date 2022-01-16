@@ -3,26 +3,29 @@
 // icon-color: cyan; icon-glyph: cloud;
 /**
  * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Github: https://www.github.com/stanleyrya
  * Tips: https://www.paypal.me/stanleyrya
  *
  * A set of classes that can create a word cloud image. Basic Usage:
+ *  * const wordCloudWords = [new WordCloudWord({word, weight}), ...]
  *  * const wordCloud = new WordCloud({width, height, wordCloudWords});
  *  * const image = await wordCloud.getImage();
  *
- * This is a demo version to help get newcomers started, but the
- * full version and minified version can be found in this folder:
- * https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud
+ * This is a demo script to help get newcomers started, but the
+ * full version and minified version can be found in this github repo:
+ * https://github.com/stanleyrya/scriptable-word-cloud
  *
- * Advanced features (explained in full version and demo):
+ * Advanced features (explained in the demo):
  *  * Modify how the words are displayed and processed (font, color, etc.)
  *  * Modify how the words are placed on the word cloud (star shape, galaxy shape, etc.)
  *  * Display the debugging algorithm by passing in debug=true
  *  * and more!
  *
- * Here's the WordCloud constructor for the curious!
+ * Here's the complete WordCloud constructor for the curious!
  *  {
- *    width, height, wordCloudWords,
- *    growToFit = true, debug = false
+ *    width, height, wordCloudWords, // required
+ *    growToFit = true,
+ *    debug = false
  *    weightFunction = this._defaultWeightFunction,
  *    placementFunction = this._defaultPlacementFunction,
  *    growthFunction = this._defaultGrowthFunction
@@ -32,675 +35,7 @@
 class WordCloudWord{constructor({word:r,weight:i}){if(!r)throw"word is required!";if(!i)throw"weight is required!";this.word=r,this.weight=i}}
 class WordCloudFont{constructor({fontName:s,cssUrl:o}){if(!s)throw"fontName is required!";this.fontName=s,this.cssURL=o}}
 class WordCloudProcessedWord{constructor({word:o,wordCloudFont:r,fontSize:d,color:t}){if(!o)throw"word is required!";if(!r)throw"wordCloudFont is required!";if(!(r instanceof WordCloudFont))throw"wordCloudFont must be a WordCloudFont object!";if(!d)throw"fontSize is required!";if(!t)throw"color is required!";this.word=o,this.wordCloudFont=r,this.fontSize=d,this.color=t}}
-// class WordCloud{constructor({width:t,height:e,wordCloudWords:i,weightFunction:o=this._defaultWeightFunction,placementFunction:s=this._defaultPlacementFunction,growToFit:n=!0,growthFunction:h=this._defaultGrowthFunction,debug:r=!1}){if(!t||!e||!i)throw"Could not get width, height, and wordCloudWords from input. Please see documentation.";this.providedWidth=t,this.providedHeight=e,this.placementFunction=s,this.weightFunction=o,this.growToFit=!!n,this.growthFunction=h,this.debug=!!r,this.processedWords=i.map(t=>this.weightFunction(t)),this.wordsToPlace=[...this.processedWords],this.placedWords=[],this.webView=new WebView,this.loadedCssUrls={},this.textDimensionsMap={},this.bufferRoom=10;const d=t>e?t:e;this.xRatio=t/d,this.yRatio=e/d}_defaultWeightFunction(t){return new WordCloudProcessedWord({word:t.word,wordCloudFont:new WordCloudFont({fontName:"TrebuchetMS-Bold"}),fontSize:t.weight/10*50+10,color:Device.isUsingDarkAppearance()?Color.white():Color.black()})}_defaultPlacementFunction(t,e,i,o,s,n,h){let r,d,c,a;return h?(({radius:r,radiusDirection:d,angle:c,angleDirection:a}=h),r+=.75*d,c+=2*Math.PI/50*a):(r=0,c=0,d=Math.random()<.5?-1:1,a=Math.random()<.5?-1:1),{x:i+r*Math.cos(c)*s,y:o+r*Math.sin(c)*n,radius:r,angle:c,radiusDirection:d,angleDirection:a}}_defaultGrowthFunction(t,e,i,o){return{width:t+.1*t,height:e+.1*e}}_loadFontToWebView(t,e){const i='<link rel="preconnect" href="https://fonts.gstatic.com"><link href="REPLACE_HREF" rel="stylesheet"><div style="font-family: REPLACE_FONT_FAMILY;">.</div>'.replace("REPLACE_HREF",e).replace("REPLACE_FONT_FAMILY",t);return this.webView.loadHTML(i)}_getTextDimensionsUsingWebView(t,e){const i='function getTextDimensions(t,e){const n=document.createElement("canvas").getContext("2d");n.font=e;const o=n.measureText(t);return{width:3*o.width/4,height:3*(o.actualBoundingBoxAscent+o.actualBoundingBoxDescent)/4}}getTextDimensions("REPLACE_TEXT","REPLACE_FONT");'.replace("REPLACE_TEXT",t).replace("REPLACE_FONT",e);return this.webView.evaluateJavaScript(i)}async _getTextDimensions(t,e,i){const o=i+"pt "+e.fontName,s=t+" "+o;if(this.textDimensionsMap[s])return this.textDimensionsMap[s];{e.cssURL&&(this.loadedCssUrls[e.cssURL]||(await this._loadFontToWebView(e.fontName,e.cssURL),this.loadedCssUrls[e.cssURL]=!0));const i=await this._getTextDimensionsUsingWebView(t,o);return this.textDimensionsMap[s]=i,i}}_checkRectCollision(t){for(const e of this.hitBoxes)if(t.minX<e.maxX+this.bufferRoom&&t.maxX>e.minX-this.bufferRoom&&t.minY<e.maxY+this.bufferRoom&&t.maxY>e.minY-this.bufferRoom)return!0;return!1}_checkRectOutsideBorders(t){return t.minX<0+this.bufferRoom||t.maxX>this.width-this.bufferRoom||t.minY<0+this.bufferRoom||t.maxY>this.height-this.bufferRoom}_checkPointCollision(t,e){for(const i of this.hitBoxes)if(t<i.maxX+this.bufferRoom&&t>i.minX-this.bufferRoom&&e<i.maxY+this.bufferRoom&&e>i.minY-this.bufferRoom)return!0;return!1}async _addTextCentered({x:t,y:e,processedWord:i,shouldDraw:o,checkHitboxes:s}){const{word:n,wordCloudFont:h,fontSize:r,color:d}=i,c=await this._getTextDimensions(n,h,r),a=t-c.width/2,l=e-c.height/2,w=new Rect(a,l,c.width,c.height);if(s&&this._checkRectCollision(w))return{textPlaced:!1,rectCollision:!0,outsideBorders:!1};if(this._checkRectOutsideBorders(w))return{textPlaced:!1,rectCollision:!1,outsideBorders:!0};if(this.debug&&console.log("writing "+n),this.hitBoxes.push(w),o){this.debug&&(this.ctx.setLineWidth(5),this.ctx.setStrokeColor(Color.red()),this.ctx.strokeRect(w));const t=c.height/4;this.ctx.setTextColor(d),this.ctx.setFont(new Font(h.fontName,r)),this.ctx.drawText(n,new Point(a,l-t))}return{textPlaced:!0,rectCollision:!1,outsideBorders:!1}}async _writeWithPlacementFunction(t,e){let i,o,s,n=!1,h=!1,r=!1,d=!1;const c=new Path;c.move(new Point(this.centerX,this.centerY));let a=!1;for(;!(n&&h&&r&&d);)if(i=this.placementFunction(this.width,this.height,this.centerX,this.centerY,this.xRatio,this.yRatio,i),({x:o,y:s}=i),this.debug&&e&&c.addLine(new Point(o,s)),!this._checkPointCollision(o,s)){if(t){const{textPlaced:i,rectCollision:n,outsideBorders:h}=await this._addTextCentered({x:o,y:s,processedWord:t,shouldDraw:e,checkHitboxes:!0});if(i){this.placedWords.push({xFromCenter:o-this.centerX,yFromCenter:s-this.centerY,processedWord:t}),this.wordsToPlace.shift(),a=!0;break}if(h&&this.growToFit)break}o<0&&(n=!0),o>this.width&&(h=!0),s<0&&(r=!0),s>this.height&&(d=!0)}return this.debug&&e&&(this.ctx.setLineWidth(.5),this.ctx.addPath(c),this.ctx.setStrokeColor(Color.cyan()),this.ctx.strokePath()),a}async _writePendingWords(t){this.debug&&console.log("writing pending words");let e=!0;const i=[...this.wordsToPlace];for(const o of i)if(!await this._writeWithPlacementFunction(o,t)&&(e=!1,this.growToFit))return!1;return e}async _writeAlreadyPlacedWords(t){this.debug&&console.log("writing already placed words");for(const e of this.placedWords)await this._addTextCentered({x:e.xFromCenter+this.centerX,y:e.yFromCenter+this.centerY,processedWord:e.processedWord,shouldDraw:t,checkHitboxes:!1})}async _getWordStats(){let t=0,e=0,i=0;for(const o of this.processedWords){const{word:s,wordCloudFont:n,fontSize:h,color:r}=o,d=await this._getTextDimensions(s,n,h);t<d.width&&(t=d.width),e<d.height&&(e=d.height),i+=d.width*d.height}return{minWidth:t,minHeight:e,minArea:i}}async _getStackedMinDimensions(t,e){let i=0,o=0;for(const s of this.processedWords){const{word:n,wordCloudFont:h,fontSize:r,color:d}=s,c=await this._getTextDimensions(n,h,r);c.width>t/2&&(i+=c.height),c.height>e/2&&(o+=c.width)}return{stackedMinWidth:o,stackedMinHeight:i}}async _preflightGrow(t,e){let i=t,o=e;const{minWidth:s,minHeight:n,minArea:h}=await this._getWordStats();for(;s>i||n>o;)console.log("increasing because of min width or height"),({width:i,height:o}=this.growthFunction(i,o,this.providedWidth,this.providedHeight));for(;h>i*o;)console.log("increasing because of min area"),({width:i,height:o}=this.growthFunction(i,o,this.providedWidth,this.providedHeight));let{stackedMinWidth:r,stackedMinHeight:d}=await this._getStackedMinDimensions(i,o);for(;r>i||d>o;)console.log("increasing because of stacked width or height"),({width:i,height:o}=this.growthFunction(i,o,this.providedWidth,this.providedHeight)),({stackedMinWidth:r,stackedMinHeight:d}=await this._getStackedMinDimensions(i,o));return{width:i,height:o}}async getImage(){let t=this.providedWidth,e=this.providedHeight;this.growToFit&&({width:t,height:e}=await this._preflightGrow(t,e));let i=!1;for(;!i&&(this.width=t,this.height=e,this.centerX=t/2,this.centerY=e/2,this.hitBoxes=[],await this._writeAlreadyPlacedWords(!1),i=await this._writePendingWords(!1),this.growToFit);)i||(console.log("increasing because words couldn't fit area"),({width:t,height:e}=this.growthFunction(t,e,this.providedWidth,this.providedHeight)));return this.ctx=new DrawContext,this.ctx.opaque=!1,this.ctx.respectScreenScale=!0,this.ctx.size=new Size(t,e),await this._writeAlreadyPlacedWords(!0),this.debug&&(this.ctx.setLineWidth(5),this.ctx.setStrokeColor(Color.red()),this.ctx.strokeRect(new Rect(0,0,t,e)),await this._writeWithPlacementFunction(null,!0)),this.ctx.getImage()}}
-/**
- * A word cloud.
- */
-class WordCloud {
-
-  /**
-   * Required:
-   *
-   * @param {number} width
-   *   - The width of the canvas.
-   * @param {number} height
-   *   - The height of the canvas.
-   * @param {WordCloudWord[]} wordData
-   *   - The words that will be displayed on the
-   *     canvas.
-   *
-   * Optional:
-   *
-   * @param {weightFunction}
-   *   [weightFunction=this._defaultWeightFunction]
-   *   - A function that processes words before they
-   *     are placed on the canvas.
-   * @param {placementFunction}
-   *   [placementFunction=this._defaultPlacementFunction]
-   *   - A function that decides where the next word
-   *     should attempt to be placed.
-   * @param {boolean} [growToFit=true]
-   *   - A boolean that determines if the word cloud
-   *     should expand the canvas to fit all of the
-   *     provided words.
-   * @param {growthFunction}
-   *   [growthFunction=this._defaultGrowthFunction]
-   *   - A function that determines how the canvas
-   *     should grow if growToFit is true.
-   * @param {boolean} [debug=false]
-   *   - A boolean that writes additional context to
-   *     the canvas for debugging.
-   */
-  constructor({
-    width,
-    height,
-    wordCloudWords,
-    weightFunction = this._defaultWeightFunction,
-    placementFunction = this._defaultPlacementFunction,
-    growToFit = true,
-    growthFunction = this._defaultGrowthFunction,
-    debug = false
-  }) {
-    if (!width || !height || !wordCloudWords) {
-      throw ("Could not get width, height, and wordCloudWords from input. Please see documentation.");
-    }
-
-    this.providedWidth = width;
-    this.providedHeight = height;
-    this.placementFunction = placementFunction;
-    this.weightFunction = weightFunction;
-    this.growToFit = !!growToFit;
-    this.growthFunction = growthFunction;
-    this.debug = !!debug;
-
-    this.processedWords = wordCloudWords.map(wordCloudWord => this.weightFunction(wordCloudWord));
-    this.wordsToPlace = [...this.processedWords];
-    this.placedWords = [];
-
-    this.webView = new WebView();
-    this.loadedCssUrls = {};
-    this.textDimensionsMap = {};
-
-    // Controls buffer around words and border
-    this.bufferRoom = 10;
-
-    // Can be used to stretch the placementFunction
-    const biggestSide = width > height ? width : height;
-    this.xRatio = width / biggestSide;
-    this.yRatio = height / biggestSide;
-  }
-
-  /**
-   * This is the default weight function that gets
-   * included with the WordCloud class.
-   * Please use it as an example!
-   *
-   * @param {WordCloudWord} wordCloudWord
-   *   - The word that is being processed.
-   * @return {WordCloudProcessedWord}
-   *   - The word after processing.
-   */
-  _defaultWeightFunction(wordCloudWord) {
-    const max = 60;
-    const min = 10;
-    return new WordCloudProcessedWord({
-      word: wordCloudWord.word,
-      wordCloudFont: new WordCloudFont({
-        fontName: "TrebuchetMS-Bold"
-      }),
-      fontSize: (wordCloudWord.weight / 10) * (max - min) + min,
-      color: Device.isUsingDarkAppearance() ? Color.white() : Color.black()
-    });
-  }
-
-  /**
-   * This is the default placement function that gets
-   * included with the WordCloud class.
-   * Please use it as an example!
-   *
-   * @param {number} width - of the Canvas (after growth if applicable)
-   * @param {number} height - of the Canvas (after growth if applicable)
-   * @param {number} centerX - center X value
-   * @param {number} centerY - center Y value
-   * @param {number} xRatio - (width / biggestSide) - useful for scaling
-   * @param {number} yRatio - (height / biggestSide) - useful for scaling
-   * @param {Object} previousResult
-   *  - The previously returned object. Useful to
-   *    store state.
-   * @return { number, number, ... } { x, y, ... }
-   *  - The new x and y after processing. Return
-   *    any other information you may find useful!
-   */
-  _defaultPlacementFunction(width, height, centerX, centerY, xRatio, yRatio, previousResult) {
-    let radius, radiusDirection, angle, angleDirection;
-    if (previousResult) {
-      ({
-        radius,
-        radiusDirection,
-        angle,
-        angleDirection
-      } = previousResult);
-      // Try these values too: 0.75 -> 0.1, 50 -> 100
-      radius += .75 * radiusDirection;
-      angle += (Math.PI * 2) / 50 * angleDirection;
-    } else {
-      radius = 0;
-      angle = 0;
-      radiusDirection = Math.random() < 0.5 ? -1 : 1;
-      angleDirection = Math.random() < 0.5 ? -1 : 1;
-    }
-
-    const x = centerX + radius * Math.cos(angle) * xRatio;
-    const y = centerY + radius * Math.sin(angle) * yRatio;
-    return { x, y, radius, angle, radiusDirection, angleDirection };
-  }
-
-  /**
-   * This is the default growth function that gets
-   * included with the WordCloud class.
-   * Please use it as an example!
-   *
-   * @param {number} currentWidth
-   * @param {number} currentHeight
-   * @param {number} originalWidth
-   * @param {number} originalHeight
-   * @return { number, number } { width, height }
-   *   - The new width and height after processing.
-   */
-  _defaultGrowthFunction(currentWidth, currentHeight, originalWidth, originalHeight) {
-    return {
-      width: currentWidth + currentWidth * 0.1,
-      height: currentHeight + currentHeight * 0.1
-    };
-  }
-
-  /**
-   * Uses Scriptable's WebView to load a custom font.
-   * iOS custom fonts aren't loaded on the HTML
-   * document canvas so they have to be loaded using
-   * their css stylesheet.
-   *
-   * @param {string} fontFamily
-   *  - The font family being loaded.
-   * @param {string} fontCssUrl
-   *  - The css url that will be loaded.
-   * @return {Promise}
-   *  - A promise that the font was loaded.
-   */
-  _loadFontToWebView(fontFamily, fontCssUrl) {
-    const html = `
-      // Preconnecting could decrease load time if using a Google font
-      // https://www.cdnplanet.com/blog/faster-google-webfonts-preconnect/
-      <link rel="preconnect" href="https://fonts.gstatic.com">
-
-      <link href="REPLACE_HREF" rel="stylesheet">
-
-      // Load the font so its available in the canvas
-      <div style="font-family: REPLACE_FONT_FAMILY;">.</div>
-`
-      .replace("REPLACE_HREF", fontCssUrl)
-      .replace("REPLACE_FONT_FAMILY", fontFamily);
-
-    return this.webView.loadHTML(html);
-  }
-
-  /**
-   * Uses Scriptable's WebView to call
-   * canvas.measureText on the given text of given
-   * font in pixels.
-   *
-   * @param {string} text
-   *  - The text to be rendered.
-   * @param {string} font
-   *  - The css font descriptor that text is to be
-   *    rendered with (e.g. "bold 14px verdana").
-   * @return { number, number } { width, height }
-   *  - The width and height of the text.
-   *
-   * @see Inspired from: https://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
-   */
-  _getTextDimensionsUsingWebView(text, cssFont) {
-    const javascript = `
-      function getTextDimensions(text, font) {
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
-          context.font = font;
-          const metrics = context.measureText(text);
-          return {
-              // I'm not sure why yet but 3/4 is perfect for Scriptable's DrawContext
-              width: metrics.width * 3/4,
-              height: (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) * 3/4
-          };
-      }
-
-      getTextDimensions("REPLACE_TEXT", "REPLACE_FONT");
-`
-      .replace("REPLACE_TEXT", text)
-      .replace("REPLACE_FONT", cssFont);
-
-    return this.webView.evaluateJavaScript(javascript);
-  }
-
-  /**
-   * The Scriptable WebView can use the HTML document
-   * canvas to measure a word's width and height. It
-   * can't return an image file so the rest of the
-   * script uses the Scriptable DrawContext to create
-   * the image.
-   *
-   * Custom fonts aren't loaded on the HTML document
-   * canvas so they have to be loaded using their css
-   * stylesheet.
-   */
-  async _getTextDimensions(text, wordCloudFont, fontSize) {
-    const cssFont = fontSize + "pt " + wordCloudFont.fontName;
-    const key = text + " " + cssFont;
-
-    if (this.textDimensionsMap[key]) {
-      return this.textDimensionsMap[key];
-    } else {
-      // If we are using a custom font and it hasn't
-      // been loaded before, load it to the WebView.
-      if (wordCloudFont.cssURL) {
-        if (!this.loadedCssUrls[wordCloudFont.cssURL]) {
-          await this._loadFontToWebView(wordCloudFont.fontName, wordCloudFont.cssURL);
-          this.loadedCssUrls[wordCloudFont.cssURL] = true;
-        }
-      }
-
-      const value = await this._getTextDimensionsUsingWebView(text, cssFont);
-      this.textDimensionsMap[key] = value;
-      return value;
-    }
-  }
-
-  /**
-   * Does the new rectangle hit any of the existing
-   * ones?
-   *
-   * if (RectA.Left < RectB.Right &&
-   *     RectA.Right > RectB.Left &&
-   *     RectA.Top < RectB.Bottom &&
-   *     RectA.Bottom > RectB.Top)
-   *
-   * https://stackoverflow.com/a/306332
-   */
-  _checkRectCollision(newRect) {
-    for (const placedRect of this.hitBoxes) {
-      if (newRect.minX < placedRect.maxX + this.bufferRoom &&
-        newRect.maxX > placedRect.minX - this.bufferRoom &&
-        newRect.minY < placedRect.maxY + this.bufferRoom &&
-        newRect.maxY > placedRect.minY - this.bufferRoom) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Does the new rectangle hit any of the sides?
-   */
-  _checkRectOutsideBorders(newRect) {
-    if (newRect.minX < 0 + this.bufferRoom ||
-      newRect.maxX > this.width - this.bufferRoom ||
-      newRect.minY < 0 + this.bufferRoom ||
-      newRect.maxY > this.height - this.bufferRoom) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Does the point hit any of the existing
-   * rectangles?
-   */
-  _checkPointCollision(x, y) {
-    for (const placedRect of this.hitBoxes) {
-      if (x < placedRect.maxX + this.bufferRoom &&
-        x > placedRect.minX - this.bufferRoom &&
-        y < placedRect.maxY + this.bufferRoom &&
-        y > placedRect.minY - this.bufferRoom) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  async _addTextCentered({ x, y, processedWord, shouldDraw, checkHitboxes }) {
-    const { word, wordCloudFont, fontSize, color } = processedWord;
-    const dimensions = await this._getTextDimensions(word, wordCloudFont, fontSize);
-    const topLeftX = x - (dimensions.width / 2);
-    const topLeftY = y - (dimensions.height / 2);
-    const rect = new Rect(
-      topLeftX,
-      topLeftY,
-      dimensions.width,
-      dimensions.height
-    );
-
-    if (checkHitboxes && this._checkRectCollision(rect)) {
-      return {
-        textPlaced: false,
-        rectCollision: true,
-        outsideBorders: false
-      };
-    }
-    if (this._checkRectOutsideBorders(rect)) {
-      return {
-        textPlaced: false,
-        rectCollision: false,
-        outsideBorders: true
-      };
-    }
-
-    if (this.debug) {
-      console.log("writing " + word);
-    }
-    this.hitBoxes.push(rect);
-
-    if (shouldDraw) {
-      if (this.debug) {
-        this.ctx.setLineWidth(5);
-        this.ctx.setStrokeColor(Color.red());
-        this.ctx.strokeRect(rect);
-      }
-
-      // I'm not sure why, but the text is a quarter off from the box.
-      const quarterHeight = dimensions.height / 4;
-      this.ctx.setTextColor(color);
-      this.ctx.setFont(new Font(wordCloudFont.fontName, fontSize));
-      this.ctx.drawText(word, new Point(topLeftX, topLeftY - quarterHeight));
-    }
-    return {
-      textPlaced: true,
-      rectCollision: false,
-      outsideBorders: false
-    };
-  }
-
-  async _writeWithPlacementFunction(processedWord, shouldDraw) {
-    let breachedLeft = false;
-    let breachedRight = false;
-    let breachedTop = false;
-    let breachedBottom = false;
-    let previousResult, x, y;
-
-    const path = new Path();
-    path.move(new Point(this.centerX, this.centerY));
-
-    let placed = false;
-    while (!(breachedLeft && breachedRight && breachedTop && breachedBottom)) {
-      previousResult = this.placementFunction(
-        this.width,
-        this.height,
-        this.centerX,
-        this.centerY,
-        this.xRatio,
-        this.yRatio,
-        previousResult
-      );
-      ({ x, y } = previousResult);
-
-      if (this.debug && shouldDraw) {
-        path.addLine(new Point(x, y));
-      }
-      // TODO: Check point outside borders?
-      if (this._checkPointCollision(x, y)) {
-        continue;
-      }
-
-      if (processedWord) {
-        const { textPlaced, rectCollision, outsideBorders } = await this._addTextCentered({
-          x,
-          y,
-          processedWord,
-          shouldDraw,
-          checkHitboxes: true
-        });
-        if (textPlaced) {
-          this.placedWords.push({
-            xFromCenter: x - this.centerX,
-            yFromCenter: y - this.centerY,
-            processedWord
-          });
-          this.wordsToPlace.shift();
-          placed = true;
-          break;
-        }
-        // If we're growing to fit, break out so the word cloud is tightly packed
-        if (outsideBorders && this.growToFit) {
-          break;
-        }
-      }
-
-      if (x < 0) {
-        breachedLeft = true;
-      }
-      if (x > this.width) {
-        breachedRight = true;
-      }
-      if (y < 0) {
-        breachedTop = true;
-      }
-      if (y > this.height) {
-        breachedBottom = true;
-      }
-    }
-
-    if (this.debug && shouldDraw) {
-      this.ctx.setLineWidth(1);
-      this.ctx.addPath(path);
-      this.ctx.setStrokeColor(new Color ("6693F5"));
-      this.ctx.strokePath();
-    }
-    return placed;
-  }
-
-  async _writePendingWords(shouldDraw) {
-    if (this.debug) {
-      console.log("writing pending words");
-    }
-    let placedAll = true;
-    // this.wordsToPlace is edited as words are placed
-    // To be safe, copy it locally first
-    const copiedWordsToPlace = [...this.wordsToPlace];
-    for (const processedWord of copiedWordsToPlace) {
-      if (!(await this._writeWithPlacementFunction(processedWord, shouldDraw))) {
-        placedAll = false;
-        // Stop trying to place words if growToFit
-        if (this.growToFit) {
-          return false;
-        }
-      }
-    }
-    return placedAll;
-  }
-
-  async _writeAlreadyPlacedWords(shouldDraw) {
-    if (this.debug) {
-      console.log("writing already placed words");
-    }
-    for (const placedWord of this.placedWords) {
-      await this._addTextCentered({
-        x: placedWord.xFromCenter + this.centerX,
-        y: placedWord.yFromCenter + this.centerY,
-        processedWord: placedWord.processedWord,
-        shouldDraw,
-        checkHitboxes: false
-      });
-    }
-  }
-
-  /**
-   * Returns some statistics about the words provided
-   * so the DrawContext can be adjusted to fit them.
-   *
-   * @return { number, number, number }
-   *         { minWidth, minHeight, minArea }
-   *  - The minimum width, height, and area that the
-   *    canvas needs to fit the words.
-   */
-  async _getWordStats() {
-    let minWidth = 0;
-    let minHeight = 0;
-    let minArea = 0;
-    for (const processedWord of this.processedWords) {
-      const { word, wordCloudFont, fontSize, color } = processedWord;
-      const dimensions = await this._getTextDimensions(word, wordCloudFont, fontSize);
-
-      if (minWidth < dimensions.width) {
-        minWidth = dimensions.width;
-      }
-      if (minHeight < dimensions.height) {
-        minHeight = dimensions.height;
-      }
-
-      minArea += dimensions.width * dimensions.height;
-    }
-    return { minWidth, minHeight, minArea };
-  }
-
-  /**
-   * All words that are more than half of the width
-   * can't be placed next to each other. This means
-   * they have to be stacked and their combined
-   * height needs to be at least as long as the draw
-   * context. The same can be said about words that
-   * are larger than half of the height.
-   *
-   * Unlike the _getWordStats() function, this
-   * function will return a different result
-   * depending on the current width and height.
-   *
-   * @param {number} ctxWidth
-   *  - The width the words are being checked
-   *    against.
-   * @param {number} ctxHeight
-   *  - The height the words are being checked
-   *    against.
-   * @return { number, number }
-   *         { stackedMinWidth, stackedMinHeight }
-   *  - The minimum width and height the canvas needs
-   *    to fit the words.
-   */
-  async _getStackedMinDimensions(ctxWidth, ctxHeight) {
-    let stackedMinHeight = 0;
-    let stackedMinWidth = 0;
-    for (const processedWord of this.processedWords) {
-      const { word, wordCloudFont, fontSize, color } = processedWord;
-      const dimensions = await this._getTextDimensions(word, wordCloudFont, fontSize);
-
-      if (dimensions.width > ctxWidth / 2) {
-        stackedMinHeight += dimensions.height;
-      }
-      if (dimensions.height > ctxHeight / 2) {
-        stackedMinWidth += dimensions.width;
-      }
-    }
-    return { stackedMinWidth, stackedMinHeight };
-  }
-
-  /**
-   * Before words are placed on the spiral it's
-   * possible to grow the canvas using information
-   * we know about the words. This is faster than
-   * placing all of the words on the spiral and
-   * iterating so it's preferred to run this function
-   * first.
-   *
-   * @param {number} ctxWidth
-   *  - The current width of the canvas.
-   * @param {number} ctxHeight
-   *  - The current height of the canvas.
-   * @return { number, number } { width, height }
-   *  - The new width and height for the canvas.
-   */
-  async _preflightGrow(ctxWidth, ctxHeight) {
-    let width = ctxWidth;
-    let height = ctxHeight;
-    const { minWidth, minHeight, minArea } = await this._getWordStats();
-
-    // The biggest height and width of the words have
-    // to fit the DrawContext
-    while (minWidth > width || minHeight > height) {
-      console.log("increasing because of min width or height");
-      ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
-    }
-
-    // The area of the words have to fit the area of
-    // the DrawContext
-    while (minArea > (width * height)) {
-      console.log("increasing because of min area");
-      ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
-    }
-
-    // All words that are more than half of the width
-    // can't be placed next to each other. This means
-    // they have to be stacked and their combined
-    // height needs to be at least as long as the
-    // draw context. The same can be said about words
-    // that are larger than half of the height.
-    let { stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(width, height);
-    while (stackedMinWidth > width || stackedMinHeight > height) {
-      console.log("increasing because of stacked width or height");
-      ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
-      ({ stackedMinWidth, stackedMinHeight } = await this._getStackedMinDimensions(width, height));
-    }
-
-    return { width, height };
-  }
-
-  /**
-   * If growToFit is true, the canvas will grow until
-   * all of the words fit on the canvas. This is done
-   * using the following algorithm:
-   *
-   * 1. "Preflight": The words are analyzed to see
-   *    if the canvas needs growing before anything
-   *    is written to the canvas.
-   * 2. "Placement": The words are placed on the
-   *    canvas until either:
-   *    A) a word can't be placed anymore or
-   *    B) a word overlaps with the outside of the
-   *       canvas. We check for B so the result stays
-   *       "tight". Skipping this step usually
-   *       results in "tall" word clouds.
-   * 3. "Grow and Repeat": The canvas is grown, the
-   *    words that have already been placed before
-   *    are placed in their last positions, and the
-   *    "Placement" step starts over again. This
-   *    repeats until all of the words are placed on
-   *    the canvas.
-   *
-   * @return { Image } - The image of the WordCloud!
-   */
-  async getImage() {
-    let width = this.providedWidth;
-    let height = this.providedHeight;
-    if (this.growToFit) {
-      ({ width, height } = await this._preflightGrow(width, height));
-    }
-
-    let placedAll = false;
-    while (!placedAll) {
-      this.width = width;
-      this.height = height;
-      this.centerX = width / 2;
-      this.centerY = height / 2;
-      this.hitBoxes = [];
-
-      await this._writeAlreadyPlacedWords(false);
-      placedAll = await this._writePendingWords(false);
-
-      if (!this.growToFit) {
-        break;
-      }
-
-      if (!placedAll) {
-        console.log("increasing because words couldn't fit area");
-        ({ width, height } = this.growthFunction(width, height, this.providedWidth, this.providedHeight));
-      }
-    }
-
-    this.ctx = new DrawContext();
-    this.ctx.opaque = false;
-    this.ctx.respectScreenScale = true;
-    this.ctx.size = new Size(width, height);
-
-    // If debug is on, run the placement function one
-    // last time to display how the function works.
-    if (this.debug) {
-      this.ctx.setLineWidth(5);
-      this.ctx.setStrokeColor(Color.red());
-      this.ctx.strokeRect(new Rect(0, 0, width, height));
-      await this._writeWithPlacementFunction(null, true);
-    }
-
-    await this._writeAlreadyPlacedWords(true);
-    return this.ctx.getImage();
-  }
-
-}
+class WordCloud{constructor({width:t,height:e,wordCloudWords:i,weightFunction:o=this._defaultWeightFunction,placementFunction:s=this._defaultPlacementFunction,growToFit:n=!0,growthFunction:h=this._defaultGrowthFunction,debug:r=!1}){if(!t||!e||!i)throw"Could not get width, height, and wordCloudWords from input. Please see documentation.";this.providedWidth=t,this.providedHeight=e,this.placementFunction=s,this.weightFunction=o,this.growToFit=!!n,this.growthFunction=h,this.debug=!!r,this.processedWords=i.map(t=>this.weightFunction(t)),this.wordsToPlace=[...this.processedWords],this.placedWords=[],this.webView=new WebView,this.loadedCssUrls={},this.textDimensionsMap={},this.bufferRoom=10;const d=t>e?t:e;this.xRatio=t/d,this.yRatio=e/d}_defaultWeightFunction(t){return new WordCloudProcessedWord({word:t.word,wordCloudFont:new WordCloudFont({fontName:"TrebuchetMS-Bold"}),fontSize:t.weight/10*50+10,color:Device.isUsingDarkAppearance()?Color.white():Color.black()})}_defaultPlacementFunction(t,e,i,o,s,n,h){let r,d,c,a;return h?(({radius:r,radiusDirection:d,angle:c,angleDirection:a}=h),r+=.75*d,c+=2*Math.PI/50*a):(r=0,c=0,d=Math.random()<.5?-1:1,a=Math.random()<.5?-1:1),{x:i+r*Math.cos(c)*s,y:o+r*Math.sin(c)*n,radius:r,angle:c,radiusDirection:d,angleDirection:a}}_defaultGrowthFunction(t,e,i,o){return{width:t+.1*t,height:e+.1*e}}_loadFontToWebView(t,e){const i='<link rel="preconnect" href="https://fonts.gstatic.com"><link href="REPLACE_HREF" rel="stylesheet"><div style="font-family: REPLACE_FONT_FAMILY;">.</div>'.replace("REPLACE_HREF",e).replace("REPLACE_FONT_FAMILY",t);return this.webView.loadHTML(i)}_getTextDimensionsUsingWebView(t,e){const i='function getTextDimensions(t,e){const n=document.createElement("canvas").getContext("2d");n.font=e;const o=n.measureText(t);return{width:3*o.width/4,height:3*(o.actualBoundingBoxAscent+o.actualBoundingBoxDescent)/4}}getTextDimensions("REPLACE_TEXT","REPLACE_FONT");'.replace("REPLACE_TEXT",t).replace("REPLACE_FONT",e);return this.webView.evaluateJavaScript(i)}async _getTextDimensions(t,e,i){const o=i+"pt "+e.fontName,s=t+" "+o;if(this.textDimensionsMap[s])return this.textDimensionsMap[s];{e.cssURL&&(this.loadedCssUrls[e.cssURL]||(await this._loadFontToWebView(e.fontName,e.cssURL),this.loadedCssUrls[e.cssURL]=!0));const i=await this._getTextDimensionsUsingWebView(t,o);return this.textDimensionsMap[s]=i,i}}_checkRectCollision(t){for(const e of this.hitBoxes)if(t.minX<e.maxX+this.bufferRoom&&t.maxX>e.minX-this.bufferRoom&&t.minY<e.maxY+this.bufferRoom&&t.maxY>e.minY-this.bufferRoom)return!0;return!1}_checkRectOutsideBorders(t){return t.minX<0+this.bufferRoom||t.maxX>this.width-this.bufferRoom||t.minY<0+this.bufferRoom||t.maxY>this.height-this.bufferRoom}_checkPointCollision(t,e){for(const i of this.hitBoxes)if(t<i.maxX+this.bufferRoom&&t>i.minX-this.bufferRoom&&e<i.maxY+this.bufferRoom&&e>i.minY-this.bufferRoom)return!0;return!1}async _addTextCentered({x:t,y:e,processedWord:i,shouldDraw:o,checkHitboxes:s}){const{word:n,wordCloudFont:h,fontSize:r,color:d}=i,c=await this._getTextDimensions(n,h,r),a=t-c.width/2,l=e-c.height/2,w=new Rect(a,l,c.width,c.height);if(s&&this._checkRectCollision(w))return{textPlaced:!1,rectCollision:!0,outsideBorders:!1};if(this._checkRectOutsideBorders(w))return{textPlaced:!1,rectCollision:!1,outsideBorders:!0};if(this.debug&&console.log("writing "+n),this.hitBoxes.push(w),o){this.debug&&(this.ctx.setLineWidth(5),this.ctx.setStrokeColor(Color.red()),this.ctx.strokeRect(w));const t=c.height/4;this.ctx.setTextColor(d),this.ctx.setFont(new Font(h.fontName,r)),this.ctx.drawText(n,new Point(a,l-t))}return{textPlaced:!0,rectCollision:!1,outsideBorders:!1}}async _writeWithPlacementFunction(t,e){let i,o,s,n=!1,h=!1,r=!1,d=!1;const c=new Path;c.move(new Point(this.centerX,this.centerY));let a=!1;for(;!(n&&h&&r&&d);)if(i=this.placementFunction(this.width,this.height,this.centerX,this.centerY,this.xRatio,this.yRatio,i),({x:o,y:s}=i),this.debug&&e&&c.addLine(new Point(o,s)),!this._checkPointCollision(o,s)){if(t){const{textPlaced:i,rectCollision:n,outsideBorders:h}=await this._addTextCentered({x:o,y:s,processedWord:t,shouldDraw:e,checkHitboxes:!0});if(i){this.placedWords.push({xFromCenter:o-this.centerX,yFromCenter:s-this.centerY,processedWord:t}),this.wordsToPlace.shift(),a=!0;break}if(h&&this.growToFit)break}o<0&&(n=!0),o>this.width&&(h=!0),s<0&&(r=!0),s>this.height&&(d=!0)}return this.debug&&e&&(this.ctx.setLineWidth(.5),this.ctx.addPath(c),this.ctx.setStrokeColor(Color.cyan()),this.ctx.strokePath()),a}async _writePendingWords(t){this.debug&&console.log("writing pending words");let e=!0;const i=[...this.wordsToPlace];for(const o of i)if(!await this._writeWithPlacementFunction(o,t)&&(e=!1,this.growToFit))return!1;return e}async _writeAlreadyPlacedWords(t){this.debug&&console.log("writing already placed words");for(const e of this.placedWords)await this._addTextCentered({x:e.xFromCenter+this.centerX,y:e.yFromCenter+this.centerY,processedWord:e.processedWord,shouldDraw:t,checkHitboxes:!1})}async _getWordStats(){let t=0,e=0,i=0;for(const o of this.processedWords){const{word:s,wordCloudFont:n,fontSize:h,color:r}=o,d=await this._getTextDimensions(s,n,h);t<d.width&&(t=d.width),e<d.height&&(e=d.height),i+=d.width*d.height}return{minWidth:t,minHeight:e,minArea:i}}async _getStackedMinDimensions(t,e){let i=0,o=0;for(const s of this.processedWords){const{word:n,wordCloudFont:h,fontSize:r,color:d}=s,c=await this._getTextDimensions(n,h,r);c.width>t/2&&(i+=c.height),c.height>e/2&&(o+=c.width)}return{stackedMinWidth:o,stackedMinHeight:i}}async _preflightGrow(t,e){let i=t,o=e;const{minWidth:s,minHeight:n,minArea:h}=await this._getWordStats();for(;s>i||n>o;)console.log("increasing because of min width or height"),({width:i,height:o}=this.growthFunction(i,o,this.providedWidth,this.providedHeight));for(;h>i*o;)console.log("increasing because of min area"),({width:i,height:o}=this.growthFunction(i,o,this.providedWidth,this.providedHeight));let{stackedMinWidth:r,stackedMinHeight:d}=await this._getStackedMinDimensions(i,o);for(;r>i||d>o;)console.log("increasing because of stacked width or height"),({width:i,height:o}=this.growthFunction(i,o,this.providedWidth,this.providedHeight)),({stackedMinWidth:r,stackedMinHeight:d}=await this._getStackedMinDimensions(i,o));return{width:i,height:o}}async getImage(){let t=this.providedWidth,e=this.providedHeight;this.growToFit&&({width:t,height:e}=await this._preflightGrow(t,e));let i=!1;for(;!i&&(this.width=t,this.height=e,this.centerX=t/2,this.centerY=e/2,this.hitBoxes=[],await this._writeAlreadyPlacedWords(!1),i=await this._writePendingWords(!1),this.growToFit);)i||(console.log("increasing because words couldn't fit area"),({width:t,height:e}=this.growthFunction(t,e,this.providedWidth,this.providedHeight)));return this.ctx=new DrawContext,this.ctx.opaque=!1,this.ctx.respectScreenScale=!0,this.ctx.size=new Size(t,e),await this._writeAlreadyPlacedWords(!0),this.debug&&(this.ctx.setLineWidth(5),this.ctx.setStrokeColor(Color.red()),this.ctx.strokeRect(new Rect(0,0,t,e)),await this._writeWithPlacementFunction(null,!0)),this.ctx.getImage()}}
 
 /************************************
  ***** EXAMPLE WEIGHT FUNCTIONS *****
@@ -930,21 +265,22 @@ function demoDisplayReplacer(key, val) {
 }
 
 // Replace {{INPUT_HERE}} with input
-// Mostly copied from minified wordcloud script:
-// https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/minified-word-cloud.js
+// Mostly copied from minified wordcloud script
 const demoTemplate = `
 /**
  * Author: Ryan Stanley (stanleyrya@gmail.com)
+ * Github: https://www.github.com/stanleyrya
  * Tips: https://www.paypal.me/stanleyrya
  *
  * A set of classes that can create a word cloud image. Basic Usage:
+ *  * const wordCloudWords = [new WordCloudWord({word, weight}), ...]
  *  * const wordCloud = new WordCloud({width, height, wordCloudWords});
  *  * const image = await wordCloud.getImage();
  *
  * This copy was created from the demo script and uses the minified objects
  * for readability. The demo, full version, and minified versions can all be
- * found in this folder:
- * https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud
+ * found in this github repo:
+ * https://github.com/stanleyrya/scriptable-word-cloud
  *
  * Advanced features (explained in full version and demo):
  *  * Modify how the words are displayed and processed (font, color, etc.)
@@ -952,10 +288,11 @@ const demoTemplate = `
  *  * Display the debugging algorithm by passing in debug=true
  *  * and more!
  *
- * Here's the WordCloud constructor for the curious!
+ * Here's the complete WordCloud constructor for the curious!
  *  {
- *    width, height, wordCloudWords,
- *    growToFit = true, debug = false
+ *    width, height, wordCloudWords, // required
+ *    growToFit = true,
+ *    debug = false
  *    weightFunction = this._defaultWeightFunction,
  *    placementFunction = this._defaultPlacementFunction,
  *    growthFunction = this._defaultGrowthFunction
@@ -987,7 +324,7 @@ if (config.runsInWidget) {
 }
 `
 
-// Given an object that contains functions, turn them into actual functions in a copy-pastable string.
+// Given an object that contains functions, stringify them in a way that can still be run as a script.
 function createCopyPasteableInput(wordCloudData) {
   function demoCopyReplacer(key, val) {
     if (typeof val === 'function') {
@@ -1086,7 +423,7 @@ async function createDemoTable() {
   }
 `, 320),
     createDescriptionRow("The inputs width, height, centerX, and centerY are pretty straightforward. xRatio and yRatio are the ratio of the side compared to the largest side and can be useful when scaling the algorithm for different input parameters. PreviousResult contains the results from the last iteration of the algorithm, which at a minimum includes the last x and y values. If it's helpful you can pass additional values in the result and use it in the next iteration, like radius and angle in the example.", 180),
-    createDescriptionRow("I recommend reading the example functions and modifying them to understand how they work. I also recommend googling some cool (x,y) plots and converting them to placement functions. For ingestigation you could modify my script here:", 100),
+    createDescriptionRow("I recommend reading the example functions and modifying them to understand how they work. I also recommend googling some cool (x,y) plots and converting them to placement functions. For investigation you could modify my script here:", 100),
     createDescriptionRow("-> https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/experiments/draw-spiral.js", 60, 'https://github.com/stanleyrya/scriptable-playground/blob/main/word-cloud/experiments/draw-spiral.js'),
     createDescriptionRow("Here are some placement algorithms I created that are different than the provided spiral one. When the debug parameter is set to true you can see what the algorithm is plotting:", 80),
 	  await createDemoRow({
@@ -1155,7 +492,7 @@ async function createDemoTable() {
     });
   }
 `, 240),
-    createDescriptionRow(`The fontName is the font family. This article [1] suggests this app [2] is the safest way to download fonts to iOS. Be careful, use at your own risk!`, 60),
+    createDescriptionRow(`The fontName is the font family. This article [1] suggests this app [2] is the safest way to download fonts to iOS. Be careful, use at your own risk!`, 100),
     createDescriptionRow(`-> [1] - https://9to5mac.com/2020/06/12/fontcase-open-source-fonts-app-iphone-ipad`, 60, "https://9to5mac.com/2020/06/12/fontcase-open-source-fonts-app-iphone-ipad"),
     createDescriptionRow(`-> [2] - https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470`, 60, "https://apps.apple.com/us/app/fontcase-manage-your-type/id1205074470"),
     createDescriptionRow(`After all of that hassle I hope you agree the effort is worth it! Once these fonts are installed they will begin working:`, 60),
